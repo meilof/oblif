@@ -1,0 +1,7 @@
+* lazy evalation
+* relative guards
+
+* What to do if oblivious guard is not a bit?
+* Use array indexing instead of get, set
+* Deepcopy?
+
