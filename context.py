@@ -10,6 +10,17 @@ def ifelse(guard, ifv, elsev):
         print("attribute error")
         return elsev + guard*(ifv-elsev)
 
+class cachedifthenelse:
+    def __init__(self, guard, ifval, elseval):
+        self.guard = guard
+        self.ifval = ifval
+        self.elseval = elseval
+    
+    def __call__(self):
+        if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
+        if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
+        return self.guard.ifelse(self.ifval, self.elseval)
+    
 class cor_dict:
     def __init__(self, dic):
         self.dic = dic
@@ -19,6 +30,7 @@ class cor_dict:
         if not var in self.reads:
             # todo: deep copy
             self.reads.add(var)
+            if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
         return self.dic[var]
     
     def __setitem__(self, var, val):
@@ -81,7 +93,7 @@ class Ctx:
             nwctx = dict()
             for nm in self.contexts[label].dic:
                 if nm in vals.dic:
-                    nwctx[nm] = guard.ifelse(vals.dic[nm], self.contexts[label].dic[nm])
+                    nwctx[nm] = cachedifthenelse(guard, vals.dic[nm], self.contexts[label].dic[nm])
             self.contexts[label] = cor_dict(nwctx)
 #            print_ctx("result of merge:", nwctx)
             
