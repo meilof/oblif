@@ -149,4 +149,57 @@ class Ctx:
         self.apply_to_label(self.vals, True, label)
         self.vals = None
 #        print_ctx("jmp done")
+
+    class ObliviousRange:
+        def __init__(self, ctx, start, max1, max2, step):
+            self.ctx = ctx
+            self.start = int(start)
+            self.step = int(step)
+            try:
+                self.maxi = int(max1)
+                try:
+                    self.maxo = int(max2)
+                except:
+                    self.maxo = max2
+            except:
+                try:
+                    self.maxi = int(max2)
+                    self.maxo = max1
+                except:
+                    raise RuntimeError("at least one of the loop bounds must support int()")
+            self.cur = None
+            
+        def __iter__(self):
+            return self
         
+        def __next__(self):
+            print("next")
+            if self.cur is None:
+                if self.start>=self.maxi: raise StopIteration
+                if isinstance(self.maxo,int) and self.start>=self.maxo: raise StopIteration
+                # document: we do not check initial bounds against oblivious maxo
+                self.cur = self.start
+                return self.cur
+            
+            if self.cur+self.step>=self.maxi: raise StopIteration
+            if isinstance(self.maxo,int) and self.cur+self.step>=self.maxi: raise StopIteration
+            
+            if not isinstance(self.maxo,int):
+                print("obliviously updating guard", "cur", self.cur, "step", self.step, "maxo", self.maxo, "guard", self.ctx.vals["__guard"])
+                for i in range(self.cur+1, self.cur+self.step+1):
+                    print("equals", i, self.maxo, (i==self.maxo))
+                    self.ctx.vals["__guard"] &= (1-(i==self.maxo))
+                print("resulting in ", self.ctx.vals["__guard"])
+            
+            self.cur += self.step
+            return self.cur
+        
+    def range(self, *args):
+        if len(args)==2:
+            return self.ObliviousRange(self, 0, args[0], args[1], 1)
+        elif len(args)==3:
+            return self.ObliviousRange(self, args[0], args[1], args[2], 1)
+        elif len(args)==4:
+            return self.ObliviousRange(self, args[0], args[1], args[2], 3)
+        else:
+            raise RuntimeError("wrong number of arguments to range()")

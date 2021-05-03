@@ -72,6 +72,55 @@ def callargjif(meth, arg, label, lineno):
     ]
 
 
+def get_function_args(instrs, ix):
+    ix+=1
+    args = {}
+    depth = 0
+    
+    while not (instrs[ix].name=="CALL_FUNCTION" and instrs[ix].arg==depth):
+        if instrs[ix].has_jump(): raise RuntimeError("unexpected jump")
+        print(ix, instrs[ix], depth)
+        depth += instrs[ix].stack_effect()
+        args[depth] = ix
+        ix += 1
+        
+    print("args", args)
+    return [args[d+1] for d in range(depth)]
+
+
+def patch_range(instrs, ix):
+    print("patch range", ix, get_function_args(instrs, ix))
+    
+    args = get_function_args(instrs, ix)
+    
+    print("found", args)
+    
+    for i in range(ix, args[len(args)-1]+3):
+        print(i, instrs[i])
+    
+    if len(args)==1:
+        # one function argument
+        if instrs[ix+1].name=="LOAD_GLOBAL" and instrs[ix+1].arg=="min":
+            print("found")
+            instrs[ix] = Instr("LOAD_FAST", "ctx")
+            instrs[ix+1] = Instr("LOAD_METHOD", "range")
+            instrs[args[0]] = Instr("NOP")
+            instrs[args[0]+1] = Instr("CALL_METHOD", 2)
+    elif len(args)==2 or len(args)==3:
+        arg1s = args[0]+1
+        arg2s = args[1]
+        if instrs[arg1s].name=="LOAD_GLOBAL" and instrs[arg1s].arg=="min":
+            for i in range(arg1s, ix, -1): instrs[i] = instrs[i-1]
+            instrs[ix] = Instr("LOAD_FAST", "ctx")
+            instrs[ix+1] = Instr("LOAD_METHOD", "range")
+            instrs[arg2s] = Instr("NOP")
+            instrs[args[len(args)-1]+1] = Instr("CALL_METHOD", len(args)+1)
+            #instrs[arg1s+1] = 
+            #instrs[arg2s-1]
+    
+    print("after")
+    for i in range(ix, args[len(args)-1]+3):
+        print(i, instrs[i])
 
 jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE" }
 
@@ -168,6 +217,9 @@ def _oblif(code):
             newcode.extend(callset(instr.arg, instr.lineno))
         elif instr.name=="LOAD_FAST" and instr.arg!="ctx":
             newcode.extend(callget(instr.arg, instr.lineno))
+        elif instr.name=="LOAD_GLOBAL" and instr.arg=="range":
+            patch_range(bc,ix)
+            newcode.append(bc[ix])
         elif instr.name=="POP_JUMP_IF_FALSE":
             newcode.extend(callstackarg("pjif", labels[instr.arg], lineno=instr.lineno))
         elif instr.name=="POP_JUMP_IF_TRUE":
@@ -190,10 +242,10 @@ def _oblif(code):
     for bci in newcode: bc.append(bci)
         
         
-#    print("***")
-#    for i in bc:
-#        print("*", i)
-#    print("***")        
+    print("***")
+    for i in bc:
+        print("*", i)
+    print("***")        
         
     return bc.to_code()
         

@@ -62,27 +62,18 @@ class OblivVal:
     __rand__ = __and__
     
 
-@oblif
 def test(x):
 
     ret = 1
     ix = 1
     
-    print("before", ix)
-    
-    if x==5:
-        x=10
-        
-    print("after", ix)
-    
-    while ix!=10:
-        ret = ret*ix
-        if ix==x: break
-        ix = ix+1
+    for i in range(0, min(x,10)):
+        print("cur", i)
+        ret = i
         
     return ret
 
-print("test(5) is", test(PubVal(5)).val())
+print("test(5) is", oblif(test)(PubVal(5)).val())
     
 #    a=x*x
 #    b=3
