@@ -9,3 +9,7 @@
 * Use array indexing instead of get, set
 * Deepcopy?
 
+* for loops
+   - syntax die ook voor normale code werkt? for i in range(0,min(a,b))?
+   - alleen voor tweede argument, alleen voor min?
+   - strides met (x==a or x+1==a) etc doen, we willen geen comparisons
