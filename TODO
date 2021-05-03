@@ -9,3 +9,4 @@
 * Use array indexing instead of get, set
 * Deepcopy?
 
+* make ctx, __guard accessible to code (ctx: turn into load_local and do not process, __guard: turn into load_local)
