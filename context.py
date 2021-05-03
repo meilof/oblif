@@ -172,26 +172,39 @@ class Ctx:
         def __iter__(self):
             return self
         
-        def __next__(self):
-            print("next")
+        def foriter(self, label):
+#            print("next", self, self.cur)
             if self.cur is None:
-                if self.start>=self.maxi: raise StopIteration
-                if isinstance(self.maxo,int) and self.start>=self.maxo: raise StopIteration
-                # document: we do not check initial bounds against oblivious maxo
+                if (self.start>=self.maxi) or isinstance(self.maxo,int) and self.start>=self.maxo:
+#                    print("exceeded max")
+                    self.ctx.apply_to_label(self.ctx.vals, True, label)
+                    self.ctx.vals = None
+                    return
                 self.cur = self.start
-                return self.cur
+                return
             
-            if self.cur+self.step>=self.maxi: raise StopIteration
-            if isinstance(self.maxo,int) and self.cur+self.step>=self.maxi: raise StopIteration
+            if self.cur+self.step>=self.maxi or (isinstance(self.maxo,int) and self.cur+self.step>=self.maxo):
+#                print("exceeded max")
+                self.ctx.apply_to_label(self.ctx.vals, True, label)
+                self.ctx.vals = None
+                self.cur = None
+                return
             
             if not isinstance(self.maxo,int):
-                print("obliviously updating guard", "cur", self.cur, "step", self.step, "maxo", self.maxo, "guard", self.ctx.vals["__guard"])
+#                print("obliviously updating guard", "cur", self.cur, "step", self.step, "maxo", self.maxo, "guard", self.ctx.vals["__guard"])
+                
+                dostop = 0
                 for i in range(self.cur+1, self.cur+self.step+1):
-                    print("equals", i, self.maxo, (i==self.maxo))
-                    self.ctx.vals["__guard"] &= (1-(i==self.maxo))
-                print("resulting in ", self.ctx.vals["__guard"])
+#                    print("equals", i, self.maxo, (i==self.maxo))
+                    dostop |= (i==self.maxo)
+                self.ctx.apply_to_label(self.ctx.vals, dostop, label)
+                self.ctx.vals["__guard"] &= (1-dostop)
             
             self.cur += self.step
+        
+        def __next__(self):
+#            print("calling next", self, self.cur)
+            if self.cur is None: raise StopIteration
             return self.cur
         
     def range(self, *args):
@@ -203,3 +216,7 @@ class Ctx:
             return self.ObliviousRange(self, args[0], args[1], args[2], 3)
         else:
             raise RuntimeError("wrong number of arguments to range()")
+            
+    def foriter(self, arg, label):
+#        print("called foriter", arg)
+        if isinstance(arg, self.ObliviousRange): arg.foriter(label)

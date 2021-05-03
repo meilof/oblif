@@ -220,6 +220,11 @@ def _oblif(code):
         elif instr.name=="LOAD_GLOBAL" and instr.arg=="range":
             patch_range(bc,ix)
             newcode.append(bc[ix])
+        elif instr.name=="FOR_ITER":
+            newcode.extend(
+                [Instr("DUP_TOP", lineno=instr.lineno)] + 
+                callstackarg("foriter", labels[instr.arg], lineno=instr.lineno) +
+                [instr])
         elif instr.name=="POP_JUMP_IF_FALSE":
             newcode.extend(callstackarg("pjif", labels[instr.arg], lineno=instr.lineno))
         elif instr.name=="POP_JUMP_IF_TRUE":
@@ -242,10 +247,10 @@ def _oblif(code):
     for bci in newcode: bc.append(bci)
         
         
-    print("***")
-    for i in bc:
-        print("*", i)
-    print("***")        
+#    print("***")
+#    for i in bc:
+#        print("*", i)
+#    print("***")        
         
     return bc.to_code()
         

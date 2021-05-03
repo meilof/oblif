@@ -67,9 +67,12 @@ def test(x):
     ret = 1
     ix = 1
     
-    for i in range(0, min(x,10)):
+    for i in range(1, min(x+1,10)):
         print("cur", i)
-        ret = i
+        ret = ret*i
+        print("ret", ret)
+        
+    print("after, ret is", ret)
         
     return ret
 
