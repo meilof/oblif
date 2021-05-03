@@ -1,5 +1,9 @@
-* lazy evalation
+* lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
 * relative guards
+  Relative guarding: xab, a^b, maak er xac van, c is b of ^b en dus 1, dan met
+  x^a, zou goed moeten gaan? Eerst niet doen! Depends on order? Probably not
+* implementeer oblivious proxy/ensemble: _(obj), dereference with ._(),
+  cartesisch product guards bij functietoepassing
 
 * What to do if oblivious guard is not a bit?
 * Use array indexing instead of get, set
