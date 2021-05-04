@@ -1,3 +1,5 @@
 pysnark_*
 .DS_Store
 __pycache__/*
+pyz8z.so
+rlwe_*
