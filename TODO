@@ -10,3 +10,12 @@
 * Deepcopy?
 
 * make ctx, __guard accessible to code (ctx: turn into load_local and do not process, __guard: turn into load_local)
+
+* documentatie 
+  - behaviour on globals is undefined
+  - for does not test oblivious initial conditions
+  - implement bit assertions/conversions on guard
+
+* for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
+* allerlei tests met f(x)==x.val if x:=oblif(f)(oblif(args)).val if isinstance(x,OblivVal) else x
+* kijken of bij return de context triviaal is
