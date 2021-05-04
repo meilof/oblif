@@ -52,6 +52,13 @@ def callstackarg(meth, arg, lineno):
         Instr("POP_TOP", lineno = lineno)
     ]
 
+def callargnopop(meth, arg, lineno):
+    return [
+        Instr("LOAD_FAST", "ctx", lineno = lineno),
+        Instr("LOAD_METHOD", meth, lineno = lineno),
+        Instr("LOAD_CONST", arg, lineno = lineno),
+        Instr("CALL_METHOD", 1, lineno = lineno),
+    ]
 
 def callarg(meth, arg, lineno):
     return [
@@ -73,7 +80,7 @@ def callargjif(meth, arg, label, lineno):
 
 
 
-jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE" }
+jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
 
 labels = {}                      # given Label, gives number for it
 last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
@@ -142,6 +149,9 @@ def _oblif(code):
 #    print("*** static analysis done")
     
 #    print("backjump to", backjump_to)
+
+    label_ret = Label()
+    label_ret_ix = len(bc)
     
     for (ix,instr) in enumerate(bc):
         
@@ -160,7 +170,7 @@ def _oblif(code):
             if ix2<len(bc):
                 newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], label_at[ix2], get_lineno(bc, ix)))
             else:
-                newcode.extend([label_at[ix]] + callarg("label", labels[label_at[ix]], get_lineno(bc, ix)))
+                newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], label_ret, get_lineno(bc, ix)))
         
         if not isinstance(instr, Instr): continue
             
@@ -176,6 +186,8 @@ def _oblif(code):
             newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
         elif instr.name=="JUMP_FORWARD":
             newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
+        elif instr.name=="RETURN_VALUE":
+            newcode.extend(callstackarg("ret", label_ret_ix, lineno=instr.lineno))
         elif instr.name=="JUMP_IF_TRUE_OR_POP":
             raise RuntimeError("JUMP_IF_TRUE_OR_POP not supported @" + str(instr.lineno))
         elif instr.name=="JUMP_IF_FALSE_OR_POP":
@@ -185,6 +197,8 @@ def _oblif(code):
             
         if ix in backjump_to:
             newcode.append(Instr("JUMP_ABSOLUTE", backjump_to[ix]))
+            
+    newcode.extend([label_ret] + callargnopop("doret", label_ret_ix, bc[len(bc)-1].lineno) + [Instr("RETURN_VALUE")])
             
     bc.clear()
     for bci in newcode: bc.append(bci)

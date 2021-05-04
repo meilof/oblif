@@ -1,15 +1,5 @@
 from inspect import getframeinfo, stack
 
-def ifelse(guard, ifv, elsev):
-    print("calling ifelse", guard, guard.share, "?",
-                            ifv, ifv.share if not isinstance(ifv, int) else None, ":",
-                            elsev, elsev.share if not isinstance(elsev, int) else None)
-    try:
-        return guard.ifelse(ifv, elsev)
-    except AttributeError:
-        print("attribute error")
-        return elsev + guard*(ifv-elsev)
-
 class cor_dict:
     def __init__(self, dic):
         self.dic = dic
@@ -87,6 +77,7 @@ class Ctx:
             
     def label(self, label):
 #        print_ctx("entering label", label, "with context", self.vals)
+#        if label in self.contexts: print("and context", self.contexts[label])
         if self.vals:
             self.apply_to_label(self.vals, True, label)
         if label in self.contexts:
@@ -149,4 +140,15 @@ class Ctx:
         self.apply_to_label(self.vals, True, label)
         self.vals = None
 #        print_ctx("jmp done")
+
+    def ret(self, arg, label):
+#        print("calling ret", arg, label, self.vals)
+        self.vals["__ret"] = arg
+        self.apply_to_label(self.vals, True, label)  # TODO: sufficient to only apply __ret...
+        self.vals = None
+        
+    def doret(self, label):
+#        print("calling doret", label)
+        self.label(label)
+        return self.vals["__ret"]
         

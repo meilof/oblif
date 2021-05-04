@@ -64,7 +64,7 @@ class OblivVal:
 
 @oblif
 def test(x):
-
+    
     ret = 1
     ix = 1
     
@@ -77,12 +77,14 @@ def test(x):
     
     while ix!=10:
         ret = ret*ix
+        print("ret", ret)
+        if ret==120: return ret
         if ix==x: break
         ix = ix+1
         
     return ret
 
-print("test(5) is", test(PubVal(5)).val())
+print("test(5) is", test(PubVal(3)).val())
     
 #    a=x*x
 #    b=3
