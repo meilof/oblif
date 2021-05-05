@@ -18,11 +18,14 @@ def test(x):
         ret = ret*ix
         if ix==x: break
         ix = ix+1
-        
+
+    print("returning", ret)
     return ret
 
 mpc.run(mpc.start())
 type=mpc.SecInt()
+
+type.ifelse = lambda self, ifval, elseval: ifval if ifval is elseval else mpc.if_else(self, ifval, elseval)
 
 print("test(5) is", mpc.run(mpc.output(test(type(5)))))
 
