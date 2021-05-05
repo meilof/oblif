@@ -14,7 +14,7 @@ class enc:
         
     def ifelse(self, ifval, elseval):
         if ifval is elseval: return ifval
-        ret = ifval + (1-self)*(elseval-ifval)
+        ret = ifval - (self-1)*(elseval-ifval)
         return ret
     
     def __mul__(self, other):
