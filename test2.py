@@ -64,23 +64,24 @@ class OblivVal:
 
 @oblif
 def test(x):
+    ret = 1 if x==3 else 2 if x==4 else 3
     
-    ret = 1
-    ix = 1
-    
-    print("before", ix)
-    
-    if x==5:
-        x=10
-        
-    print("after", ix)
-    
-    while ix!=10:
-        ret = ret*ix
-        print("ret", ret)
-        if ret==120: return ret
-        if ix==x: break
-        ix = ix+1
+#    ret = 1
+#    ix = 1
+#    
+#    print("before", ix)
+#    
+#    if x==5:
+#        x=10
+#        
+#    print("after", ix)
+#    
+#    while ix!=10:
+#        ret = ret*ix
+#        print("ret", ret)
+#        if ret==120: return ret
+#        if ix==x: break
+#        ix = ix+1
         
     return ret
 

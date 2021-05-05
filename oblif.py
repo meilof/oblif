@@ -98,10 +98,10 @@ def _oblif(code):
     """ Turn given code into data-oblivious code """
     bc = Bytecode.from_code(code)
     
-#    print("***")
-#    for (ix,i) in enumerate(bc):
-#        print(ix, "*", i)
-#    print("***")
+    print("***")
+    for (ix,i) in enumerate(bc):
+        print(ix, "*", i)
+    print("***")
     
     lineno = get_lineno(bc, 0)
     newcode = init_code(lineno) + [ins for nm in bc.argnames for ins in storeinctx(nm, lineno)]
@@ -112,6 +112,26 @@ def _oblif(code):
     # - for each instruction representing a jump, ensure that nextlabel is set
     
 #    print("*** static analysis")
+
+    ssizes = {0:0}
+    for (ix,instr) in enumerate(bc):
+        print(ix, "*", ssizes[ix], "*", instr)
+        if isinstance(instr, Instr) and instr.has_jump():
+            ix2 = bc.index(instr.arg)
+            if ix2 in ssizes and ssizes[ix2]!=ssizes[ix]:
+                raise RuntimeError("inconsistent stack depth at #" + str(ix2) + ": " + 
+                                   str(ssizes[ix]) + " vs " + str(ssizes[ix2]))
+            ssizes[ix2] = ssizes[ix]
+        if isinstance(instr, Instr) and not instr.is_uncond_jump():
+            ssizes[ix+1] = ssizes[ix] + instr.stack_effect()
+        if isinstance(instr, Label):
+            ssizes[ix+1] = ssizes[ix]
+            
+    print("ssizes", ssizes)
+
+    #    if instrs[ix].has_jump(): raise RuntimeError("unexpected jump")
+    #    print(ix, instrs[ix], depth)
+    #    depth += instrs[ix].stack_effect()
     
     for (ix,instr) in enumerate(bc):
         if isinstance(instr,Label):
