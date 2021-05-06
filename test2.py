@@ -85,7 +85,7 @@ def test(x):
         
     return ret
 
-print("test(5) is", test(PubVal(3)).val())
+print("test(5) is", test(PubVal(0)).val())
     
 #    a=x*x
 #    b=3
