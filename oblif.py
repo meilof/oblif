@@ -174,9 +174,9 @@ def _oblif(code):
         
         if not isinstance(instr, Instr): continue
             
-        if instr.name=="STORE_FAST" and instr.arg!="ctx":
+        if instr.name=="STORE_FAST" and instr.arg[-1]!="_":
             newcode.extend(callset(instr.arg, instr.lineno))
-        elif instr.name=="LOAD_FAST" and instr.arg!="ctx":
+        elif (instr.name=="LOAD_FAST" and instr.arg[-1]!="_") or (instr.name=="LOAD_GLOBAL" and instr.arg=="__guard"):
             newcode.extend(callget(instr.arg, instr.lineno))
         elif instr.name=="POP_JUMP_IF_FALSE":
             newcode.extend(callstackarg("pjif", labels[instr.arg], lineno=instr.lineno))

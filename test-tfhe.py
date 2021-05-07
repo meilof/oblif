@@ -47,6 +47,10 @@ class enc:
             return self.__mul__(other)
         
     __rand__ = __and__
+    
+    def __deepcopy__(self, memo):
+        return self
+
 
 @oblif
 def test(x):

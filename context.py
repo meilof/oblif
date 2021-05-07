@@ -1,3 +1,4 @@
+from copy import deepcopy
 from inspect import getframeinfo, stack
 
 class cor_dict:
@@ -7,7 +8,7 @@ class cor_dict:
         
     def __getitem__(self, var):
         if not var in self.reads:
-            # todo: deep copy
+            self.dic[var] = deepcopy(self.dic[var])
             self.reads.add(var)
         return self.dic[var]
     

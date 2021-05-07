@@ -26,6 +26,7 @@ mpc.run(mpc.start())
 type=mpc.SecInt()
 
 type.ifelse = lambda self, ifval, elseval: ifval if ifval is elseval else mpc.if_else(self, ifval, elseval)
+type.__deepcopy__ = lambda self, memo: self
 
 print("test(5) is", mpc.run(mpc.output(test(type(5)))))
 

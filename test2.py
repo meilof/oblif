@@ -1,7 +1,7 @@
 from oblif import oblif
 #from context import Ctx
 
-from pysnark.runtime import PubVal
+#from pysnark.runtime import PubVal
 
 class OblivVal:
     def __init__(self, val):
@@ -26,7 +26,7 @@ class OblivVal:
         ifi = (ifval if isinstance(ifval,int) else ifval.val)
         oti = (elseval if isinstance(elseval,int) else elseval.val)
         
-        print("calling ifelse => ", self, ifval, elseval, self.val*ifi + (1-self.val)*oti)
+        #print("calling ifelse => ", self, ifval, elseval, self.val*ifi + (1-self.val)*oti)
         return OblivVal(self.val*ifi + (1-self.val)*oti)
     
     def __and__(self, other):
@@ -61,6 +61,9 @@ class OblivVal:
 
     __rand__ = __and__
     
+    def __deepcopy__(self, memo):
+        return self
+    
 
 @oblif
 def test(x):
@@ -68,23 +71,29 @@ def test(x):
     ret = 1
     ix = 1
     
-    print("before", ix)
+    print("before", ix, x)
     
     if x==5:
         x=10
         
-    print("after", ix)
+    print("after", ix, x)
+    
+    test_ = 3
     
     while ix!=10:
+        print("guard is", __guard)
         ret = ret*ix
-        print("ret", ret)
-        if ret==120: return ret
+        #if ret==120: return ret
         if ix==x: break
         ix = ix+1
+        test_ = test_ + 1
         
+    print("test_", test_)
+        
+    print("returning", ret)
     return ret
 
-print("test(5) is", test(PubVal(3)).val())
+print("test(5) is", test(OblivVal(5)))
     
 #    a=x*x
 #    b=3
