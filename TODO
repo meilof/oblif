@@ -31,3 +31,8 @@ a and a, a or a: return self, is that required or just more efficient?
 Oblif membrr funvtion; avoid deepcopy on self, use var_ to denote no use of ctx! Of standaard geen deepcopy kan ook! 
 
 If then else lazy with ensemble: dict{id: guard} --> vermijd onnodig!
+
+* for loops
+   - syntax die ook voor normale code werkt? for i in range(0,min(a,b))?
+   - alleen voor tweede argument, alleen voor min?
+   - strides met (x==a or x+1==a) etc doen, we willen geen comparisons

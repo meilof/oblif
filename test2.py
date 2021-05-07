@@ -65,36 +65,44 @@ class OblivVal:
         return self
     
 
-@oblif
 def test(x):
-    ret = 1 if x==3 else 2 if x==4 else 3
-    
-    ret = 1
-    ix = 1
-    
-    print("before", ix, x)
-    
-    if x==5:
-        x=10
+    for i in range(min(1,2)):
+        print(i)
+#    ret = 1 if x==3 else 2 if x==4 else 3
+#    
+#    ret = 1
+#    ix = 1
+#    
+#    print("before", ix, x)
+#    
+#    if x==5:
+#        x=10
+#        
+#    print("after", ix, x)
+#    
+#    test_ = 3
+#    
+#    while ix!=10:
+#        print("guard is", __guard)
+#        ret = ret*ix
+#        #if ret==120: return ret
+#        if ix==x: break
+#        ix = ix+1
+#        test_ = test_ + 1
+#        
+#    print("test_", test_)
+#
+#    for i in range(1, min(x+1,10)):
+#        print("cur", i)
+#        ret = ret*i
+#        print("ret", ret)
         
-    print("after", ix, x)
-    
-    test_ = 3
-    
-    while ix!=10:
-        print("guard is", __guard)
-        ret = ret*ix
-        #if ret==120: return ret
-        if ix==x: break
-        ix = ix+1
-        test_ = test_ + 1
-        
-    print("test_", test_)
-        
-    print("returning", ret)
-    return ret
+#    print("after, ret is", ret)
+#        
+#    print("returning", ret)
+#    return ret
 
-print("test(5) is", test(OblivVal(5)))
+print("test(5) is", oblif(test)(OblivVal(5)).val())
     
 #    a=x*x
 #    b=3

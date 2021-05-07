@@ -52,21 +52,24 @@ def callstackarg(meth, arg, lineno):
         Instr("POP_TOP", lineno = lineno)
     ]
 
+def callstackargs(meth, arg, nstack, lineno):
+    return [
+        Instr("BUILD_TUPLE", nstack, lineno = lineno),
+        Instr("LOAD_FAST", "ctx", lineno = lineno),
+        Instr("LOAD_METHOD", meth, lineno = lineno),
+        Instr("ROT_THREE", lineno = lineno),
+        Instr("ROT_THREE", lineno = lineno),
+        Instr("LOAD_CONST", arg, lineno = lineno),
+        Instr("CALL_METHOD", 2, lineno = lineno),
+        Instr("POP_TOP", lineno = lineno)
+    ]
+
 def callargnopop(meth, arg, lineno):
     return [
         Instr("LOAD_FAST", "ctx", lineno = lineno),
         Instr("LOAD_METHOD", meth, lineno = lineno),
         Instr("LOAD_CONST", arg, lineno = lineno),
         Instr("CALL_METHOD", 1, lineno = lineno),
-    ]
-
-def callarg(meth, arg, lineno):
-    return [
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("LOAD_CONST", arg, lineno = lineno),
-        Instr("CALL_METHOD", 1, lineno = lineno),
-        Instr("POP_TOP", lineno = lineno)
     ]
 
 def callargjif(meth, arg, label, lineno):
@@ -80,6 +83,58 @@ def callargjif(meth, arg, label, lineno):
 
 
 jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
+
+def get_function_args(instrs, ix):
+    ix+=1
+    args = {}
+    depth = 0
+    
+    while not (instrs[ix].name=="CALL_FUNCTION" and instrs[ix].arg==depth):
+        if instrs[ix].has_jump(): raise RuntimeError("unexpected jump")
+        print(ix, instrs[ix], depth)
+        depth += instrs[ix].stack_effect()
+        args[depth] = ix
+        ix += 1
+        
+    print("args", args)
+    return [args[d+1] for d in range(depth)]
+
+
+def patch_range(instrs, ix):
+    print("patch range", ix, get_function_args(instrs, ix))
+    
+    args = get_function_args(instrs, ix)
+    
+    print("found", args)
+    
+    for i in range(ix, args[len(args)-1]+3):
+        print(i, instrs[i])
+    
+    if len(args)==1:
+        # one function argument
+        if instrs[ix+1].name=="LOAD_GLOBAL" and instrs[ix+1].arg=="min":
+            print("found")
+            instrs[ix] = Instr("LOAD_FAST", "ctx")
+            instrs[ix+1] = Instr("LOAD_METHOD", "range")
+            instrs[args[0]] = Instr("NOP")
+            instrs[args[0]+1] = Instr("CALL_METHOD", 2)
+    elif len(args)==2 or len(args)==3:
+        arg1s = args[0]+1
+        arg2s = args[1]
+        if instrs[arg1s].name=="LOAD_GLOBAL" and instrs[arg1s].arg=="min":
+            for i in range(arg1s, ix, -1): instrs[i] = instrs[i-1]
+            instrs[ix] = Instr("LOAD_FAST", "ctx")
+            instrs[ix+1] = Instr("LOAD_METHOD", "range")
+            instrs[arg2s] = Instr("NOP")
+            instrs[args[len(args)-1]+1] = Instr("CALL_METHOD", len(args)+1)
+            #instrs[arg1s+1] = 
+            #instrs[arg2s-1]
+    
+    print("after")
+    for i in range(ix, args[len(args)-1]+3):
+        print(i, instrs[i])
+
+jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE" }
 
 labels = {}                      # given Label, gives number for it
 last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
@@ -127,11 +182,12 @@ def _oblif(code):
         
         nextsize = ssizes[ix] + instr.stack_effect()
         if instr.has_jump():
+            nextsize2 = nextsize if instr.name!="FOR_ITER" else nextsize-2
             ix2 = bc.index(instr.arg)
-            if ix2 in ssizes and ssizes[ix2]!=nextsize:
+            if ix2 in ssizes and ssizes[ix2]!=nextsize2:
                 raise RuntimeError("inconsistent stack depth at #" + str(ix2) + ": " + 
-                                   str(nextsize) + " vs " + str(ssizes[ix2]))
-            ssizes[ix2] = nextsize
+                                   str(nextsize2) + " vs " + str(ssizes[ix2]))
+            ssizes[ix2] = nextsize2
         if not instr.is_uncond_jump():
             ssizes[ix+1] = nextsize
             
@@ -214,23 +270,32 @@ def _oblif(code):
             newcode.extend(callset(instr.arg, instr.lineno))
         elif (instr.name=="LOAD_FAST" and instr.arg[-1]!="_") or (instr.name=="LOAD_GLOBAL" and instr.arg=="__guard"):
             newcode.extend(callget(instr.arg, instr.lineno))
+        elif instr.name=="LOAD_GLOBAL" and instr.arg=="range":
+            patch_range(bc,ix)
+            newcode.append(bc[ix])
+        elif instr.name=="FOR_ITER":
+            newcode.extend(
+                [Instr("DUP_TOP", lineno=instr.lineno)] + 
+                callstackarg("foriter", labels[instr.arg], lineno=instr.lineno) +
+                [instr])
         elif instr.name=="POP_JUMP_IF_FALSE":
-            if ssizes[ix]!=1: raise RuntimeError("extra stack depth at jump @" + str(ix))
-            newcode.extend(callstackarg("pjif", labels[instr.arg], lineno=instr.lineno))
+            #if ssizes[ix]!=1: raise RuntimeError("extra stack depth at jump @" + str(ix))
+            newcode.extend(callstackargs("pjif", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
         elif instr.name=="POP_JUMP_IF_TRUE":
             if ssizes[ix]!=1: raise RuntimeError("extra stack depth at jump @" + str(ix))
-            newcode.extend(callstackarg("pjit", labels[instr.arg], lineno=instr.lineno))
+            newcode.extend(callstackargs("pjit", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
         elif instr.name=="JUMP_ABSOLUTE":
-            if ssizes[ix]!=0: raise RuntimeError("nonzero stack depth at jump @" + str(ix))
-            newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
+            #if ssizes[ix]!=0: raise RuntimeError("nonzero stack depth at jump @" + str(ix))
+            newcode.extend(callstackargs("jmp", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
         elif instr.name=="JUMP_FORWARD":
-            if ssizes[ix]==0:
-                newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
-            elif ssizes[ix]==1: # jump as part of a ternary operator
-                newcode.extend(callset("__stack", lineno=instr.lineno))
-                newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
-            else:
-                raise RuntimeError("nonzero stack depth at jump @" + str(ix))
+            newcode.extend(callstackargs("jmp", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
+            #if ssizes[ix]==0:
+            #    newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
+            #elif ssizes[ix]==1: # jump as part of a ternary operator
+            #    newcode.extend(callset("__stack", lineno=instr.lineno))
+            #    newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
+            #else:
+            #    raise RuntimeError("nonzero stack depth at jump @" + str(ix))
         elif instr.name=="RETURN_VALUE":
             if ssizes[ix]!=1: raise RuntimeError("unexpected stack elements on return @" + str(ix))
             newcode.extend(callstackarg("ret", label_ret_ix, lineno=instr.lineno))
