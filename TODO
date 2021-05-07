@@ -19,3 +19,15 @@
 * for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
 * allerlei tests met f(x)==x.val if x:=oblif(f)(oblif(args)).val if isinstance(x,OblivVal) else x
 * kijken of bij return de context triviaal is
+
+Generieke obliv-wrap die alles doorgeeft aan zijn onderliggende value (modulo een paar optimalisaties)
+
+Ook met spdz proberen?
+
+Native variant met decorators? Toch over nadenken?
+
+a and a, a or a: return self, is that required or just more efficient?
+
+Oblif membrr funvtion; avoid deepcopy on self, use var_ to denote no use of ctx! Of standaard geen deepcopy kan ook! 
+
+If then else lazy with ensemble: dict{id: guard} --> vermijd onnodig!
