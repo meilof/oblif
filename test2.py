@@ -67,6 +67,7 @@ class OblivVal:
 
 @oblif
 def test(x):
+    ret = 1 if x==3 else 2 if x==4 else 3
     
     ret = 1
     ix = 1
