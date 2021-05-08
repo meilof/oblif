@@ -1,84 +1,18 @@
 import sys
 from oblif.decorator import oblif
+from oblif.types import OblivVal
 #from context import Ctx
 
 #from pysnark.runtime import PubVal
 
-class OblivVal:
-    def __init__(self, val):
-        self.val = val
-        
-    def __repr__(self):
-        return "{"+repr(self.val)+"}"
-        
-    def assert_bool(self):
-        if self.val!=0 and self.val!=1:
-            raise ValueError("not boolean")
-            
-    def __invert__(self):
-        return OblivVal(1-self.val)
-            
-    def __bool__(self):
-        raise TypeError("cannot bool() an OblivVal")
-        
-    def ifelse(self, ifval, elseval):
-        if ifval is elseval: return ifval
-        
-        ifi = (ifval if isinstance(ifval,int) else ifval.val)
-        oti = (elseval if isinstance(elseval,int) else elseval.val)
-        
-        #print("calling ifelse => ", self, ifval, elseval, self.val*ifi + (1-self.val)*oti)
-        return OblivVal(self.val*ifi + (1-self.val)*oti)
-    
-    def __and__(self, other):
-        if isinstance(other,int):
-            return self if other else 0
-        else:
-            return OblivVal(self.val&other.val)
-        
-    def __or__(self, other):
-#        print("calling __or__")
-        if isinstance(other, int):
-            return 1 if other else self
-        else:
-            return OblivVal(self.val|other.val)
-        
-    def __eq__(self, other):
-#        print("call to eq")
-        return OblivVal(1 if self.val==(other if isinstance(other,int) else other.val) else 0)
-    
-    def __ne__(self, other):
-#        print("call to ne")
-        return OblivVal(1 if self.val!=(other if isinstance(other,int) else other.val) else 0)
-    
-    def __mul__(self, other):
-        return OblivVal(self.val*(other if isinstance(other,int) else other.val))
-    
-    __rmul__ = __mul__
-    
-    def __add__(self, other):
-        return OblivVal(self.val+(other if isinstance(other,int) else other.val))
-    
-    __radd__ = __add__
-    
-    def __sub__(self, other):
-        return OblivVal(self.val-(other if isinstance(other,int) else other.val))
-        
-    def __rsub__(self, other):
-        return OblivVal((other if isinstance(other,int) else other.val)-self.val)
 
-    __rand__ = __and__
-    
-    def __deepcopy__(self, memo):
-        return self
     
 
 @oblif
 def test(x):
-    if x==4:
-        ret=4
-    else:
-        ret=5
+    ret = 0
+    if x==3:
+        ret = 1
     return ret
     
 #    ret=1
