@@ -8,8 +8,11 @@ class cachedifthenelse:
         self.elseval = elseval
     
     def __call__(self):
+#        print("calling ifelse on ", self.ifval, self.elseval)
         if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
         if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
+        if isinstance(self.ifval, tuple):
+            return tuple([self.guard.ifelse(x,y) for (x,y) in zip(self.ifval, self.elseval)])
         return self.guard.ifelse(self.ifval, self.elseval)
     
 class cor_dict:
@@ -19,6 +22,7 @@ class cor_dict:
         
     def __getitem__(self, var):
         if not var in self.reads:
+#            print("deepcopying", var)
             self.dic[var] = deepcopy(self.dic[var])
             self.reads.add(var)
             if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
@@ -90,7 +94,10 @@ class Ctx:
             
     def label(self, label):
 #        print_ctx("entering label", label, "with context", self.vals)
-#        if label in self.contexts: print("and context", self.contexts[label])
+#        if label in self.contexts: 
+#            print("and context", self.contexts[label])
+#        else:
+#            print("and no context")
         if self.vals:
             self.apply_to_label(self.vals, True, label)
         if label in self.contexts:
@@ -102,8 +109,10 @@ class Ctx:
 #            print_ctx("no reason to execute code, skipping")
             return False
         
-    def pjif(self, guard, label):
-#        print_ctx("calling pjif, guard=", guard, "label=", label)
+    def pjif(self, stack, label):
+        self.vals["__stack"] = tuple(stack[:-1])
+        guard = stack[-1]
+#        print_ctx("calling pjif, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
         
         try:
             guard = bool(guard)
@@ -125,8 +134,10 @@ class Ctx:
             self.apply_to_label(self.vals, 1-guard, label) # TODO: why not ~?
             self.vals["__guard"] &= guard
             
-    def pjit(self, guard, label):
-#        print_ctx("calling pjit, guard=", guard, "label=", label)
+    def pjit(self, stack, label):
+        self.vals["__stack"] = tuple(stack[:-1])
+        guard = stack[-1]
+#        print_ctx("calling pjit, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
         
         try:
             guard = bool(guard)
@@ -147,9 +158,24 @@ class Ctx:
 #            print_ctx("* if, guard is oblivious", guard)
             self.apply_to_label(self.vals, guard, label)
             self.vals["__guard"] &= (1-guard) # TODO: why not ~?
+        
+    def stack(self, stack):
+#        print("stacking", stack)
+        self.vals["__stack"] = stack
+        
+    def unstack(self):
+#        print("calling unstack")
+        stack = self.vals.dic["__stack"]
+        if isinstance(stack, cachedifthenelse): stack=stack()
+        ret = tuple(reversed(stack)) # ?!
+#        print("stack is", ret)
+        del self.vals.dic["__stack"] # TODO?!
+        #self.vals.reads.remove("__stack")
+        return ret
             
-    def jmp(self, label):
-#        print_ctx("calling jmp", label)
+    def jmp(self, stack, label):
+#        print("jmp", stack, label)
+        self.vals["__stack"] = stack
         self.apply_to_label(self.vals, True, label)
         self.vals = None
 #        print_ctx("jmp done")
@@ -211,7 +237,7 @@ class Ctx:
                 dostop = 0
                 for i in range(self.cur+1, self.cur+self.step+1):
 #                    print("equals", i, self.maxo, (i==self.maxo))
-                    dostop |= (i==self.maxo)
+                    dostop = (i==self.maxo)|dostop
                 self.ctx.apply_to_label(self.ctx.vals, dostop, label)
                 self.ctx.vals["__guard"] &= (1-dostop)
             

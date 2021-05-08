@@ -41,6 +41,18 @@ def storeinctx(nm, lineno):
         Instr("POP_TOP", lineno = lineno)
     ]
 
+def callstack(meth, nstack, lineno):
+    return [
+        Instr("BUILD_TUPLE", nstack, lineno = lineno),
+        Instr("LOAD_FAST", "ctx", lineno = lineno),
+        Instr("LOAD_METHOD", meth, lineno = lineno),
+        Instr("ROT_THREE", lineno = lineno),
+        Instr("ROT_THREE", lineno = lineno),
+        Instr("CALL_METHOD", 1, lineno = lineno),
+        Instr("POP_TOP", lineno = lineno)
+    ]
+
+
 def callstackarg(meth, arg, lineno):
     return [
         Instr("LOAD_FAST", "ctx", lineno = lineno),
@@ -52,7 +64,7 @@ def callstackarg(meth, arg, lineno):
         Instr("POP_TOP", lineno = lineno)
     ]
 
-def callstackargs(meth, arg, nstack, lineno):
+def callstackargs(meth, nstack, arg, lineno):
     return [
         Instr("BUILD_TUPLE", nstack, lineno = lineno),
         Instr("LOAD_FAST", "ctx", lineno = lineno),
@@ -62,6 +74,14 @@ def callstackargs(meth, arg, nstack, lineno):
         Instr("LOAD_CONST", arg, lineno = lineno),
         Instr("CALL_METHOD", 2, lineno = lineno),
         Instr("POP_TOP", lineno = lineno)
+    ]
+
+def callunstack(meth, nstack, lineno):
+    return [
+        Instr("LOAD_FAST", "ctx", lineno = lineno),
+        Instr("LOAD_METHOD", meth, lineno = lineno),
+        Instr("CALL_METHOD", 0, lineno = lineno),
+        Instr("UNPACK_SEQUENCE", nstack, lineno = lineno),
     ]
 
 def callargnopop(meth, arg, lineno):
@@ -91,29 +111,29 @@ def get_function_args(instrs, ix):
     
     while not (instrs[ix].name=="CALL_FUNCTION" and instrs[ix].arg==depth):
         if instrs[ix].has_jump(): raise RuntimeError("unexpected jump")
-        print(ix, instrs[ix], depth)
+#        print(ix, instrs[ix], depth)
         depth += instrs[ix].stack_effect()
         args[depth] = ix
         ix += 1
         
-    print("args", args)
+#    print("args", args)
     return [args[d+1] for d in range(depth)]
 
 
 def patch_range(instrs, ix):
-    print("patch range", ix, get_function_args(instrs, ix))
+#    print("patch range", ix, get_function_args(instrs, ix))
     
     args = get_function_args(instrs, ix)
     
-    print("found", args)
+#    print("found", args)
     
-    for i in range(ix, args[len(args)-1]+3):
-        print(i, instrs[i])
+#    for i in range(ix, args[len(args)-1]+3):
+#        print(i, instrs[i])
     
     if len(args)==1:
         # one function argument
         if instrs[ix+1].name=="LOAD_GLOBAL" and instrs[ix+1].arg=="min":
-            print("found")
+#            print("found")
             instrs[ix] = Instr("LOAD_FAST", "ctx")
             instrs[ix+1] = Instr("LOAD_METHOD", "range")
             instrs[args[0]] = Instr("NOP")
@@ -130,9 +150,33 @@ def patch_range(instrs, ix):
             #instrs[arg1s+1] = 
             #instrs[arg2s-1]
     
-    print("after")
-    for i in range(ix, args[len(args)-1]+3):
-        print(i, instrs[i])
+#    print("after")
+#    for i in range(ix, args[len(args)-1]+3):
+#        print(i, instrs[i])
+        
+def compute_stack_sizes(bc):
+    ssizes = {0:0}
+    for (ix,instr) in enumerate(bc):
+#        print(ix, "*", ssizes[ix], "*", instrstring(bc,instr))
+        
+        if isinstance(instr, Label):
+            ssizes[ix+1] = ssizes[ix]
+            continue
+        
+        nextsize = ssizes[ix] + instr.stack_effect()
+        if instr.has_jump():
+            nextsize2 = nextsize if instr.name!="FOR_ITER" else nextsize-2
+            ix2 = bc.index(instr.arg)
+            if ix2 in ssizes and ssizes[ix2]!=nextsize2:
+                raise RuntimeError("inconsistent stack depth at #" + str(ix2) + ": " + 
+                                   str(nextsize2) + " vs " + str(ssizes[ix2]))
+            ssizes[ix2] = nextsize2
+        if not instr.is_uncond_jump():
+            ssizes[ix+1] = nextsize
+            
+    return ssizes
+            
+    
 
 jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE" }
 
@@ -157,10 +201,10 @@ def _oblif(code):
     """ Turn given code into data-oblivious code """
     bc = Bytecode.from_code(code)
     
-    print("***")
-    for (ix,i) in enumerate(bc):
-        print(ix, "*", instrstring(bc, i))
-    print("***")
+#    print("***")
+#    for (ix,i) in enumerate(bc):
+#        print(ix, "*", instrstring(bc, i))
+#    print("***")
     
     lineno = get_lineno(bc, 0)
     newcode = init_code(lineno) + [ins for nm in bc.argnames for ins in storeinctx(nm, lineno)]
@@ -172,26 +216,9 @@ def _oblif(code):
     
 #    print("*** static analysis")
 
-    ssizes = {0:0}
-    for (ix,instr) in enumerate(bc):
-        print(ix, "*", ssizes[ix], "*", instrstring(bc,instr))
-        
-        if isinstance(instr, Label):
-            ssizes[ix+1] = ssizes[ix]
-            continue
-        
-        nextsize = ssizes[ix] + instr.stack_effect()
-        if instr.has_jump():
-            nextsize2 = nextsize if instr.name!="FOR_ITER" else nextsize-2
-            ix2 = bc.index(instr.arg)
-            if ix2 in ssizes and ssizes[ix2]!=nextsize2:
-                raise RuntimeError("inconsistent stack depth at #" + str(ix2) + ": " + 
-                                   str(nextsize2) + " vs " + str(ssizes[ix2]))
-            ssizes[ix2] = nextsize2
-        if not instr.is_uncond_jump():
-            ssizes[ix+1] = nextsize
-            
-    print("ssizes", ssizes)
+    ssizes = compute_stack_sizes(bc)
+
+#    print("ssizes", ssizes)
 
     #    if instrs[ix].has_jump(): raise RuntimeError("unexpected jump")
     #    print(ix, instrs[ix], depth)
@@ -254,15 +281,12 @@ def _oblif(code):
             nextlabel = label_ret if ix2==len(bc) else label_at[ix2]
             lineno = get_lineno(bc, ix)
             
-            if ssizes[ix]==0:
-                newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, lineno))
-            elif ssizes[ix]==1:
-                if not (isinstance(bc[ix-1],Instr) and bc[ix-1].is_uncond_jump()):
-                    newcode.extend(callset("__stack", lineno))
-                newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, lineno))
-                newcode.extend(callget("__stack", lineno))
-            else:
-                raise RuntimeError("unexpected stack depth at " + str(ix) + ":" + str(ssizes[ix]))
+            if isinstance(bc[ix-1],Instr) and not bc[ix-1].has_jump() and ssizes[ix]!=0:
+                # if previous block does not end with a jump, we have to manually stack up ourselves
+                # TODO: more generic
+                newcode.extend(callstack("stack", ssizes[ix], lineno))
+            newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, lineno))
+            if ssizes[ix]!=0: newcode.extend(callunstack("unstack", ssizes[ix], lineno))
                 
         if not isinstance(instr, Instr): continue
             
@@ -314,12 +338,18 @@ def _oblif(code):
     bc.clear()
     for bci in newcode: bc.append(bci)
         
-        
-    print("***")
-    for (ix,i) in enumerate(bc):
-        print("*", ix, "*", instrstring(bc, i))
-    print("***")        
-        
+#    print("***")
+#    for (ix,i) in enumerate(bc):
+#        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
+#    print("***")        
+#        
+#    newsz = compute_stack_sizes(bc)
+#        
+#    print("***")
+#    for (ix,i) in enumerate(bc):
+#        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
+#    print("***")        
+
     return bc.to_code()
         
 def oblif(func_or_code):

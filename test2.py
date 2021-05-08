@@ -35,6 +35,13 @@ class OblivVal:
         else:
             return OblivVal(self.val&other.val)
         
+    def __or__(self, other):
+#        print("calling __or__")
+        if isinstance(other, int):
+            return 1 if other else self
+        else:
+            return OblivVal(self.val|other.val)
+        
     def __eq__(self, other):
 #        print("call to eq")
         return OblivVal(1 if self.val==(other if isinstance(other,int) else other.val) else 0)
@@ -66,9 +73,17 @@ class OblivVal:
     
 
 def test(x):
-    for i in range(min(1,2)):
-        print(i)
-#    ret = 1 if x==3 else 2 if x==4 else 3
+    ret=1
+    for i in range(min(x,5)):
+#        ret+=i*(ret+1)-i
+#        print("ret", ret)
+        #print(i)
+        k=(1 if x==4 else 2 if x==5 else 3)
+        print(k)
+        if k==1: ret=0
+        #print(i)
+    return k
+    
 #    
 #    ret = 1
 #    ix = 1
@@ -102,7 +117,7 @@ def test(x):
 #    print("returning", ret)
 #    return ret
 
-print("test(5) is", oblif(test)(OblivVal(5)).val())
+print("test(5) is", oblif(test)(OblivVal(4)))
     
 #    a=x*x
 #    b=3

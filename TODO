@@ -36,3 +36,10 @@ If then else lazy with ensemble: dict{id: guard} --> vermijd onnodig!
    - syntax die ook voor normale code werkt? for i in range(0,min(a,b))?
    - alleen voor tweede argument, alleen voor min?
    - strides met (x==a or x+1==a) etc doen, we willen geen comparisons
+
+
+* Optimization: if state is split in two, only one needs to be deepcopied?! Keep hascopied for deepcopy
+* stack zetten/getten netter maken, komt de deepcopy alleen maar door het printen?
+
+* Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
+* Oblivrange: check if we gewone range kunnen retourneren
