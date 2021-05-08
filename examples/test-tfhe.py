@@ -1,6 +1,5 @@
 from oblif.decorator import oblif
 import pyz8z
-#from pysnark.runtime import PubVal
 
 class enc:
     def __init__(self, ct_or_key, val_or_none=None):
@@ -59,9 +58,6 @@ def test(x):
     else:
         return 5
 
-#print("test(0) is", test(PubVal(0)))
-#print("test(1) is", test(PubVal(1)))
-
 print("loading keys...")
 key = pyz8z.Z8EncryptKey()
 print("done")
@@ -69,15 +65,3 @@ print("done")
 print("test(0) is", test(enc(key, 0)).dec(key))
 print("test(1) is", test(enc(key, 1)).dec(key))
     
-#    a=x*x
-#    b=3
-#    if OblivVal(0): #x==2
-#        print("** if")
-#        c=1
-#    else:
-#        print("** else")
-#        c=x*a
-#    return c
-
-#print("test(5) is", oblif(test)(PrivVal(5)))
-#print("test(2) is", test(6))

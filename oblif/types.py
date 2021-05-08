@@ -18,8 +18,8 @@ class OblivVal:
     def ifelse(self, ifval, elseval):
         if ifval is elseval: return ifval
         
-        ifi = (ifval if isinstance(ifval,int) else ifval.val)
-        oti = (elseval if isinstance(elseval,int) else elseval.val)
+        ifi = (ifval.val if isinstance(ifval,OblivVal) else ifval)
+        oti = (elseval.val if isinstance(elseval,OblivVal) else elseval)
         
         #print("calling ifelse => ", self, ifval, elseval, self.val*ifi + (1-self.val)*oti)
         return OblivVal(self.val*ifi + (1-self.val)*oti)
