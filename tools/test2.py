@@ -73,6 +73,8 @@ class OblivVal:
     
 
 def test(x):
+    import oblif.context
+    ctx=oblif.context.Ctx()
     ret=1
     for i in range(min(x,5)):
 #        ret+=i*(ret+1)-i

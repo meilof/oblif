@@ -1,4 +1,4 @@
-from oblif import oblif
+from oblif.decorator import oblif
 import pyz8z
 #from pysnark.runtime import PubVal
 

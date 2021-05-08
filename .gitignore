@@ -1,5 +1,8 @@
-pysnark_*
 .DS_Store
-__pycache__/*
-pyz8z.so
-rlwe_*
+examples/pysnark_*
+examples/pyz8z.so
+examples/rlwe_*
+build/*
+dist/*
+*.egg-info/*
+*__pycache__*

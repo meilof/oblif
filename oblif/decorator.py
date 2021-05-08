@@ -6,12 +6,22 @@ from bytecode import Label, Instr, Compare, Bytecode
 def init_code(lineno):
     return [ # creation of context
         Instr("LOAD_CONST", 0, lineno = lineno),
-        Instr("LOAD_CONST", None, lineno = lineno),
-        Instr("IMPORT_NAME", "context", lineno = lineno),
-        Instr("LOAD_METHOD", "Ctx", lineno = lineno),
-        Instr("CALL_METHOD", 0, lineno = lineno),
-        Instr("STORE_FAST", "ctx", lineno = lineno),
+        Instr("LOAD_CONST",  None, lineno = lineno),
+        Instr("IMPORT_NAME",  'oblif.context', lineno = lineno),
+        Instr("STORE_FAST",  'oblif', lineno = lineno),
+        Instr("LOAD_FAST",  'oblif', lineno = lineno),
+        Instr("LOAD_ATTR",  'context', lineno = lineno),
+        Instr("LOAD_METHOD",  'Ctx', lineno = lineno),
+        Instr("CALL_METHOD",  0, lineno = lineno),
+        Instr("STORE_FAST",  'ctx', lineno = lineno)
     ]
+#        Instr("LOAD_CONST", 0, lineno = lineno),
+#        Instr("LOAD_CONST", None, lineno = lineno),
+#        Instr("IMPORT_NAME", "context", lineno = lineno),
+#        Instr("LOAD_METHOD", "Ctx", lineno = lineno),
+#        Instr("CALL_METHOD", 0, lineno = lineno),
+#        Instr("STORE_FAST", "ctx", lineno = lineno),
+#    ]
 
 def callset(var, lineno):
     return \

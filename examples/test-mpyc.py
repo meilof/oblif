@@ -1,5 +1,5 @@
 from mpyc.runtime import mpc
-from oblif import oblif
+from oblif.decorator import oblif
 
 @oblif
 def test(x):

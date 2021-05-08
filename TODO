@@ -1,3 +1,5 @@
+* oblivious returning does not work yet
+
 * lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
 * relative guards
   Relative guarding: xab, a^b, maak er xac van, c is b of ^b en dus 1, dan met
