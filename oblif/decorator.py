@@ -198,10 +198,6 @@ def compute_stack_sizes(bc):
 
 jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
 
-labels = {}                      # given Label, gives number for it
-last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
-label_at = {}                    # given index, give label at that index
-backjump_to = {}                 # given index, give label to which this index is the last jump instruction
 
 def get_lineno(bc, ix):
     ixl = ix+1
@@ -214,7 +210,10 @@ def instrstring(bc, instr):
     return str(instr)
 
 def _oblif(code):
-    global labels, last_backjump_per_label
+    labels = {}                      # given Label, gives number for it
+    last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
+    label_at = {}                    # given index, give label at that index
+    backjump_to = {}                 # given index, give label to which this index is the last jump instruction
     
     """ Turn given code into data-oblivious code """
     bc = Bytecode.from_code(code)

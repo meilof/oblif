@@ -1,7 +1,7 @@
 import unittest
 
-from oblif.types import OblivVal
 from oblif.decorator import oblif
+from oblif.types import OblivVal
 
 def _val(x):
     return x.val if isinstance(x, OblivVal) else x
@@ -60,11 +60,6 @@ class TestOblif(unittest.TestCase):
         self.dotest(fn_for, 10)
         self.dotest(fn_for, 11)
         
-        
-        
-        #self.assertEqual(compute_equal(3,4),
-        #                 _val(oblif(compute_equal)(OblivVal(3),4)))
-    
 
 if __name__ == '__main__':
     unittest.main()

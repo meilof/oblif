@@ -5,7 +5,13 @@ from oblif.types import OblivVal
 
 #from pysnark.runtime import PubVal
 
+def fn_if(x):
+    ret = 0
+    if x==3:
+        ret = 1
+    return ret
 
+print(oblif(fn_if)(*(map(OblivVal, [3]))))
     
 
 @oblif
