@@ -1,5 +1,4 @@
 import sys
-sys.path.append("..")
 from oblif.decorator import oblif
 #from context import Ctx
 
@@ -76,10 +75,11 @@ class OblivVal:
 
 @oblif
 def test(x):
-    if x:
-        return 4
+    if x==4:
+        ret=4
     else:
-        return 5
+        ret=5
+    return ret
     
 #    ret=1
 #    for i in range(min(x,5)):
@@ -91,7 +91,7 @@ def test(x):
 #        if k==1: ret=0
 #        #print(i)
 #    return k
-    
+#    
 #    
 #    ret = 1
 #    ix = 1
@@ -125,7 +125,7 @@ def test(x):
 #    print("returning", ret)
 #    return ret
 
-print("test(5) is", oblif(test)(OblivVal(4)))
+print("test(5) is", test(OblivVal(4)))
     
 #    a=x*x
 #    b=3

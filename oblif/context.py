@@ -180,16 +180,16 @@ class Ctx:
         self.vals = None
 #        print_ctx("jmp done")
 
-    def ret(self, arg, label):
+    def ret(self, arg, label): # same as jmp
 #        print("calling ret", arg, label, self.vals)
-        self.vals["__ret"] = arg
-        self.apply_to_label(self.vals, True, label)  # TODO: sufficient to only apply __ret...
+        self.vals["__stack"] = (arg,)
+        self.apply_to_label(self.vals, True, label)  # TODO: sufficient to only apply __stack?!
         self.vals = None
         
-    def doret(self, label):
+#    def doret(self, label):
 #        print("calling doret", label)
-        self.label(label)
-        return self.vals["__ret"]
+#        self.label(label)
+#        return self.vals["__ret"]
 
     class ObliviousRange:
         def __init__(self, ctx, start, max1, max2, step):

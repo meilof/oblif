@@ -111,6 +111,14 @@ def callargjif(meth, arg, label, lineno):
         Instr("POP_JUMP_IF_FALSE", label, lineno = lineno)
     ]
 
+def callarg(meth, arg, lineno):
+    return [
+        Instr("LOAD_FAST", "ctx", lineno = lineno),
+        Instr("LOAD_METHOD", meth, lineno = lineno),
+        Instr("LOAD_CONST", arg, lineno = lineno),
+        Instr("CALL_METHOD", 1, lineno = lineno),
+        Instr("POP_TOP", lineno = lineno)
+    ]
 
 jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
 
@@ -188,7 +196,7 @@ def compute_stack_sizes(bc):
             
     
 
-jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE" }
+jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
 
 labels = {}                      # given Label, gives number for it
 last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
@@ -291,7 +299,7 @@ def _oblif(code):
             nextlabel = label_ret if ix2==len(bc) else label_at[ix2]
             lineno = get_lineno(bc, ix)
             
-            if isinstance(bc[ix-1],Instr) and not bc[ix-1].has_jump() and ssizes[ix]!=0:
+            if isinstance(bc[ix-1],Instr) and not bc[ix-1].has_jump() and not bc[ix-1].name=="RETURN_VALUE" and ssizes[ix]!=0:
                 # if previous block does not end with a jump, we have to manually stack up ourselves
                 # TODO: more generic
                 newcode.extend(callstack("stack", ssizes[ix], lineno))
@@ -343,7 +351,17 @@ def _oblif(code):
         if ix in backjump_to:
             newcode.append(Instr("JUMP_ABSOLUTE", backjump_to[ix]))
             
-    newcode.extend([label_ret] + callargnopop("doret", label_ret_ix, bc[len(bc)-1].lineno) + [Instr("RETURN_VALUE")])
+
+#    # TODO: may be needed?
+#    if isinstance(bc[len(bc)-1],Instr) and not bc[len(bc)-1].has_jump() and not bc[ix-1].name=="RETURN_VALUE":
+#        newcode.extend(callstack("stack", 1, bc[len(bc)-1].lineno))
+    newcode.extend([label_ret] + 
+                   callarg("label", label_ret_ix, lineno) +
+                   callunstack("unstack", 1, lineno) + 
+                   [Instr("RETURN_VALUE")])
+                   #callargnopop("doret", label_ret_ix, bc[len(bc)-1].lineno) + [Instr("RETURN_VALUE")])
+            #newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, lineno))
+            
             
     bc.clear()
     for bci in newcode: bc.append(bci)
@@ -353,13 +371,13 @@ def _oblif(code):
 #        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
 #    print("***")        
 #        
-#    newsz = compute_stack_sizes(bc)
-#        
-#    print("***")
-#    for (ix,i) in enumerate(bc):
-#        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
-#    print("***")        
-
+    newsz = compute_stack_sizes(bc)
+        
+    print("***")
+    for (ix,i) in enumerate(bc):
+        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
+    print("***")        
+    
     return bc.to_code()
         
 def oblif(func_or_code):
