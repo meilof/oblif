@@ -45,3 +45,5 @@ If then else lazy with ensemble: dict{id: guard} --> vermijd onnodig!
 
 * Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
 * Oblivrange: check if we gewone range kunnen retourneren
+
+* can we make it run on lambda's?

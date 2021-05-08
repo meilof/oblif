@@ -12,8 +12,8 @@ class cachedifthenelse:
         if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
         if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
         if isinstance(self.ifval, tuple):
-            return tuple([self.guard.ifelse(x,y) for (x,y) in zip(self.ifval, self.elseval)])
-        return self.guard.ifelse(self.ifval, self.elseval)
+            return tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
+        return self.guard.if_else(self.ifval, self.elseval)
     
 class cor_dict:
     def __init__(self, dic):
