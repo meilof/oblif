@@ -1,4 +1,4 @@
-* oblivious returning does not work yet
+* Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
 
 * lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
 * relative guards
