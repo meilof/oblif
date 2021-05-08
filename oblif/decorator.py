@@ -371,13 +371,13 @@ def _oblif(code):
 #        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
 #    print("***")        
 #        
-    newsz = compute_stack_sizes(bc)
-        
-    print("***")
-    for (ix,i) in enumerate(bc):
-        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
-    print("***")        
-    
+#    newsz = compute_stack_sizes(bc)
+#        
+#    print("***")
+#    for (ix,i) in enumerate(bc):
+#        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
+#    print("***")        
+#    
     return bc.to_code()
         
 def oblif(func_or_code):
