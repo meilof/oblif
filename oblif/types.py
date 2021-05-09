@@ -15,7 +15,7 @@ class OblivVal:
     def __bool__(self):
         raise TypeError("cannot bool() an OblivVal")
         
-    def ifelse(self, ifval, elseval):
+    def if_else(self, ifval, elseval):
         if ifval is elseval: return ifval
         
         ifi = (ifval.val if isinstance(ifval,OblivVal) else ifval)
