@@ -1,32 +1,85 @@
 from copy import deepcopy
 from inspect import getframeinfo, stack
 
-class cachedifthenelse:
-    def __init__(self, guard, ifval, elseval):
-        self.guard = guard
-        self.ifval = ifval
-        self.elseval = elseval
-    
+class ObliviousEnsemble:
+    def __init__(self):
+        self.cur = None
+        self.dic = {}
+        
+    def add(self, val, guard):
+        if id(val) in self.dic:
+            self.dic[id(val)] = (val,self.dic[id(val)][1]|guard)
+        else:
+            self.dic[id(val)] = (val,guard)
+        
+    @staticmethod
+    def ifelse(guard, ifval, elseval):
+        ret = ObliviousEnsemble()
+        if isinstance(ifval, ObliviousEnsemble):
+            for (ifvali,guardi) in ifval: ret.add(ifvali, guardi&guard)
+        else:
+            ret.add(ifval, guard)
+        if isinstance(elseval, ObliviousEnsemble):
+            for (elsevali,guardi) in ifval: ret.add(elseval, guardi&(1-guard))
+        else:
+            ret.add(elseval, 1-guard)
+            
+        
     def __call__(self):
-#        print("calling ifelse on ", self.ifval, self.elseval)
-        if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
-        if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
-        if isinstance(self.ifval, tuple):
-            return tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
-        return self.guard.if_else(self.ifval, self.elseval)
+        if self.cur is not None: return self.cur
+        
+        for (idi,(obj,guard)) in self.dic:
+            if selfcur is None:
+                self.cur = obj
+            elif isinstance(cur,tuple):
+                # need to support this for the stack even if the underlying type doesn't
+                # TODO: may be different from how the underlying type does it?
+                # assumption: does it tuplewise
+                # this is onyl needed for stack, so maybe deal with it there!
+                self.cur = tuple([guard.if_else(obji,curi) for (obji,curi) in zip(obj,self.cur)])
+            else:
+                self.cur = guard.if_else(obj,self.cur)
+                
+        return self.cur
+        
+
+#class cachedifthenelse:
+#    def __init__(self, guard, ifval, elseval):
+#        self.guard = guard
+#        self.ifval = ifval
+#        self.elseval = elseval
+#    
+#    def __call__(self):
+##        print("calling ifelse on ", self.ifval, self.elseval)
+#        if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
+#        if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
+#        if isinstance(self.ifval, tuple):
+#            return tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
+#        return self.guard.if_else(self.ifval, self.elseval)
     
 class cor_dict:
+    # may have:
+    #   - own objects
+    #   - objects determined by an oblivious ensemble -> no need to deepcopy
+    #   - objects copied from another dic -> need to deepcopy
+    # think about the best design
     def __init__(self, dic):
         self.dic = dic
         self.reads = set()
         
     def __getitem__(self, var):
-        if not var in self.reads:
-#            print("deepcopying", var)
-            self.dic[var] = deepcopy(self.dic[var])
+        item = self.dic[var]
+        
+        if var in self.reads:
+            return item
+        elif isinstance(item, ObliviousEnsemble):
             self.reads.add(var)
-            if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
-        return self.dic[var]
+            return item()
+        else:
+            self.reads.add(var)
+            item = deepcopy(item)
+            self.dic[var] = item
+            return item
     
     def __setitem__(self, var, val):
         self.dic[var] = val
@@ -74,7 +127,7 @@ class Ctx:
     def apply_to_label(self, vals, cond, label):
 #        print_ctx("applying to label", label)
         if not label in self.contexts:
-#            print_ctx("first time, setting dict to", vals)
+            print_ctx("first time, setting dict to", vals)
             self.contexts[label] = cor_dict(dict(vals.dic))
             self.contexts[label]["__guard"] &= cond
         else:
@@ -88,9 +141,8 @@ class Ctx:
             nwctx = dict()
             for nm in self.contexts[label].dic:
                 if nm in vals.dic:
-                    nwctx[nm] = cachedifthenelse(guard, vals.dic[nm], self.contexts[label].dic[nm])
+                    nwctx[nm] = ObliviousEnsemble.ifelse(guard, vals.dic[nm], self.contexts[label].dic[nm])
             self.contexts[label] = cor_dict(nwctx)
-#            print_ctx("result of merge:", nwctx)
             
     def label(self, label):
 #        print_ctx("entering label", label, "with context", self.vals)
@@ -166,7 +218,7 @@ class Ctx:
     def unstack(self):
 #        print("calling unstack")
         stack = self.vals.dic["__stack"]
-        if isinstance(stack, cachedifthenelse): stack=stack()
+        if isinstance(stack, ObliviousEnsemble): stack=stack()
         ret = tuple(reversed(stack)) # ?!
 #        print("stack is", ret)
         del self.vals.dic["__stack"] # TODO?!
