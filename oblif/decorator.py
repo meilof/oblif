@@ -23,6 +23,14 @@ def init_code(lineno):
 #        Instr("STORE_FAST", "ctx", lineno = lineno),
 #    ]
 
+def callstack1(fn, lineno):
+    return \
+        [Instr("LOAD_FAST", "ctx", lineno=lineno), 
+         Instr("LOAD_METHOD", fn, lineno=lineno),
+         Instr("ROT_THREE", lineno=lineno), 
+         Instr("ROT_THREE", lineno=lineno), 
+         Instr("CALL_METHOD", 1, lineno=lineno)]   
+
 def callset(var, lineno):
     return \
         [Instr("LOAD_FAST", "ctx", lineno=lineno), 
@@ -314,6 +322,8 @@ def _oblif(code):
         elif instr.name=="LOAD_GLOBAL" and instr.arg=="range":
             patch_range(bc,ix)
             newcode.append(bc[ix])
+        elif instr.name=="GET_ITER":
+            newcode.extend(callstack1("getiter", instr.lineno))
         elif instr.name=="FOR_ITER":
             newcode.extend(
                 [Instr("DUP_TOP", lineno=instr.lineno)] + 

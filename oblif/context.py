@@ -1,39 +1,6 @@
-from copy import deepcopy
 from inspect import getframeinfo, stack
 
-class cachedifthenelse:
-    def __init__(self, guard, ifval, elseval):
-        self.guard = guard
-        self.ifval = ifval
-        self.elseval = elseval
-    
-    def __call__(self):
-#        print("calling ifelse on ", self.ifval, self.elseval)
-        if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
-        if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
-        if isinstance(self.ifval, tuple):
-            return tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
-        return self.guard.if_else(self.ifval, self.elseval)
-    
-class cor_dict:
-    def __init__(self, dic):
-        self.dic = dic
-        self.reads = set()
-        
-    def __getitem__(self, var):
-        if not var in self.reads:
-#            print("deepcopying", var)
-            self.dic[var] = deepcopy(self.dic[var])
-            self.reads.add(var)
-            if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
-        return self.dic[var]
-    
-    def __setitem__(self, var, val):
-        self.dic[var] = val
-        self.reads.add(var)
-        
-    def __repr__(self):
-        return "{" + ", ".join([repr(nm)+": " + repr(self.dic[nm]) for nm in self.reads]) + "}"
+from .values import apply_to_label, values_new
     
 def print_ctx(*args):
     myfilename =  getframeinfo(stack()[0][0]).filename
@@ -41,10 +8,22 @@ def print_ctx(*args):
     while getframeinfo(stack()[ix][0]).filename == myfilename: ix+=1
     caller = getframeinfo(stack()[ix][0])
     print("["+caller.filename+":"+str(caller.lineno)+"]", *args)
+  
+class IterWrapper:
+    def __init__(self, it):
+        self.it = it
+        
+    def __next__(self):
+        return self.it.__next__()
     
+    def __deepcopy__(self, memo):
+#        print("deepcopy")
+        return self
+
 class Ctx:
     def __init__(self):
-        self.vals = cor_dict({"__guard": 1})
+        self.vals = values_new()
+        self.vals["__guard"] = 1
         self.contexts = {}
         
         
@@ -70,27 +49,6 @@ class Ctx:
     def set(self, var, val):
 #        print_ctx("calling set", var, val, "with", self.vals)
         self.vals[var] = val
-
-    def apply_to_label(self, vals, cond, label):
-#        print_ctx("applying to label", label)
-        if not label in self.contexts:
-#            print_ctx("first time, setting dict to", vals)
-            self.contexts[label] = cor_dict(dict(vals.dic))
-            self.contexts[label]["__guard"] &= cond
-        else:
-            guard = vals["__guard"] & cond
-#            print_ctx("oblivious merge")
-#            print_ctx("orig: ", self.contexts[label])
-#            print_ctx("new: ", cond, guard, vals)
-            # merge the two contexts
-            # if we are here, we are guaranteed that cond must be oblivious,
-            # otherwise we could not arrive at the label in two different ways
-            nwctx = dict()
-            for nm in self.contexts[label].dic:
-                if nm in vals.dic:
-                    nwctx[nm] = cachedifthenelse(guard, vals.dic[nm], self.contexts[label].dic[nm])
-            self.contexts[label] = cor_dict(nwctx)
-#            print_ctx("result of merge:", nwctx)
             
     def label(self, label):
 #        print_ctx("entering label", label, "with context", self.vals)
@@ -99,7 +57,7 @@ class Ctx:
 #        else:
 #            print("and no context")
         if self.vals:
-            self.apply_to_label(self.vals, True, label)
+            apply_to_label(self.contexts, self.vals, True, label)
         if label in self.contexts:
             self.vals = self.contexts[label]
             del self.contexts[label]
@@ -126,12 +84,12 @@ class Ctx:
         elif guard is False:
 #            print_ctx("* if, guard is false, so skip")
             # guard evaluates to false, we want to jump
-            self.apply_to_label(self.vals, True, label)
+            apply_to_label(self.contexts, self.vals, True, label)
             self.vals = None
         else:
             isobliv = True
 #            print_ctx("* if, guard is oblivious", guard)
-            self.apply_to_label(self.vals, 1-guard, label) # TODO: why not ~?
+            apply_to_label(self.contexts, self.vals, 1-guard, label) # TODO: why not ~?
             self.vals["__guard"] &= guard
             
     def pjit(self, stack, label):
@@ -151,12 +109,12 @@ class Ctx:
         elif guard is True:
 #            print_ctx("* ifneg, guard is true, so skip")
             # guard evaluates to true, we want to jump
-            self.apply_to_label(self.vals, True, label)
+            apply_to_label(self.contexts, self.vals, True, label)
             self.vals = None
         else:
             isobliv = True
 #            print_ctx("* if, guard is oblivious", guard)
-            self.apply_to_label(self.vals, guard, label)
+            apply_to_label(self.contexts, self.vals, guard, label)
             self.vals["__guard"] &= (1-guard) # TODO: why not ~?
         
     def stack(self, stack):
@@ -164,9 +122,9 @@ class Ctx:
         self.vals["__stack"] = stack
         
     def unstack(self):
-#        print("calling unstack")
-        stack = self.vals.dic["__stack"]
-        if isinstance(stack, cachedifthenelse): stack=stack()
+#        print("calling unstack", self.vals.dic["__stack"])
+        stack = self.vals["__stack"]
+        #if isinstance(stack, cachedifthenelse): stack=stack()
         ret = tuple(reversed(stack)) # ?!
 #        print("stack is", ret)
         del self.vals.dic["__stack"] # TODO?!
@@ -176,14 +134,14 @@ class Ctx:
     def jmp(self, stack, label):
 #        print("jmp", stack, label)
         self.vals["__stack"] = stack
-        self.apply_to_label(self.vals, True, label)
+        apply_to_label(self.contexts, self.vals, True, label)
         self.vals = None
 #        print_ctx("jmp done")
 
     def ret(self, arg, label): # same as jmp
 #        print("calling ret", arg, label, self.vals)
         self.vals["__stack"] = (arg,)
-        self.apply_to_label(self.vals, True, label)  # TODO: sufficient to only apply __stack?!
+        apply_to_label(self.contexts, self.vals, True, label)  # TODO: sufficient to only apply __stack?!
         self.vals = None
         
 #    def doret(self, label):
@@ -218,7 +176,7 @@ class Ctx:
             if self.cur is None:
                 if (self.start>=self.maxi) or isinstance(self.maxo,int) and self.start>=self.maxo:
 #                    print("exceeded max")
-                    self.ctx.apply_to_label(self.ctx.vals, True, label)
+                    apply_to_label(self.ctx.contexts, self.ctx.vals, True, label)
                     self.ctx.vals = None
                     return
                 self.cur = self.start
@@ -226,7 +184,7 @@ class Ctx:
             
             if self.cur+self.step>=self.maxi or (isinstance(self.maxo,int) and self.cur+self.step>=self.maxo):
 #                print("exceeded max")
-                self.ctx.apply_to_label(self.ctx.vals, True, label)
+                apply_to_label(self.ctx.contexts, self.ctx.vals, True, label)
                 self.ctx.vals = None
                 self.cur = None
                 return
@@ -238,7 +196,7 @@ class Ctx:
                 for i in range(self.cur+1, self.cur+self.step+1):
 #                    print("equals", i, self.maxo, (i==self.maxo))
                     dostop = (i==self.maxo)|dostop
-                self.ctx.apply_to_label(self.ctx.vals, dostop, label)
+                apply_to_label(self.ctx.contexts, self.ctx.vals, dostop, label)
                 self.ctx.vals["__guard"] &= (1-dostop)
             
             self.cur += self.step
@@ -260,4 +218,9 @@ class Ctx:
             
     def foriter(self, arg, label):
 #        print("called foriter", arg)
-        if isinstance(arg, self.ObliviousRange): arg.foriter(label)
+        if isinstance(arg.it, self.ObliviousRange): arg.it.foriter(label)
+        
+    def getiter(self, itr):
+        #return iter(itr)
+        return IterWrapper(iter(itr))
+        

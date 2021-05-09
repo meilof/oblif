@@ -16,7 +16,8 @@
   
   Gebruik normale dict code voor guards, zijn toch immutable!
   
-  
+  probleem met deepcopyen van de stack is dat er ook ranges in zitten, die wil je niet deepcopy'en
+  maar moet een ifthenelse uberhaupt wel worden gekopieerd?
   
 
 * Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
