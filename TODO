@@ -1,3 +1,24 @@
+* refactoren, cor dict naar aparte klasse verplaatsen, onderscheid maken tussen
+  vals, collectvals, bij implementatie "move semantics" imiteren, 
+  
+  
+  Als je appliet met true dan geen copy nodig? Move semantics emuleren? Als we apply trye doen dan altijd zelf.vals? Movectx functie? Maar op dest kan al wel dus staan
+  
+  Ook .get zonder deepcopy, parent dan ook geen deepcop
+  
+  caching toch in dic zelf met getter van parent?
+  
+  Both branches need to deepcopy!
+  
+  Deepcopy in cordict, ongeacht of ensemble of niet (evt: altijd ensemble, maar dat is wel overhead); je wilt wel caching van combinaties van guards!
+  
+  Hmm cachedifelse zou beter kunnen zijn dan ensemble want caching op alle levels... hangt er van af... gebruiker kan zelf ensemble gebruiken als object duurder dan guard, support immubableensemble as well
+  
+  Gebruik normale dict code voor guards, zijn toch immutable!
+  
+  
+  
+
 * Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
 
 * lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
