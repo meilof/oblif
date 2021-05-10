@@ -1,3 +1,20 @@
+- need to check if stack is consumed, not necessarily size
+
+- refcount id
+- dict.isowner
+- als refcount 0 wordt, dan kun je hem ownen, of uit de dict verwijderen (dat kan ook!)
+- bij stack pushen ben je owner, bij stack poppen niet, maar doe dat alleen als nodig
+- niet refcounten als id(deepcopy(x))==id(x)
+- Check bij maken lazyifelse alvast of hetzelfde
+- Als een van beide in gets dan res ook. Als niet triviale ifthenelse dan ook in gets
+- Minimale stack push en pop
+- Check what break in for does
+- Alles wat uit if then else komt kan al in sets
+
+
+Ifthenelse en guarded ifthenelse (split): aparte gevallen!
+Check bij maken lazyifelse alvast of hetzelfde
+
 * refactoren, cor dict naar aparte klasse verplaatsen, onderscheid maken tussen
   vals, collectvals, bij implementatie "move semantics" imiteren, 
   
