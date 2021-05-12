@@ -5,14 +5,21 @@ class cachedifthenelse:
         self.guard = guard
         self.ifval = ifval
         self.elseval = elseval
+        self.val = None
     
     def __call__(self):
-#        print("calling ifelse on ", self.ifval, self.elseval)
-        if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
-        if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
-        if isinstance(self.ifval, tuple):
-            return tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
-        return self.guard.if_else(self.ifval, self.elseval)
+#        print("calling ifelse on", self.guard, self.ifval, self.elseval)
+        if self.guard is not None:
+            if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
+            if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
+            if isinstance(self.ifval, tuple):
+                self.val = tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
+            else:
+                self.val = self.guard.if_else(self.ifval, self.elseval)
+            self.guard = None
+            self.ifval = None
+            self.elseval = None
+        return self.val
         
 class cor_dict:
     def __init__(self, dic):
