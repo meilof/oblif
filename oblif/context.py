@@ -10,17 +10,6 @@ def print_ctx(*args):
     caller = getframeinfo(stack()[ix][0])
     print("["+caller.filename+":"+str(caller.lineno)+"]", *args)
   
-class IterWrapper:
-    def __init__(self, it):
-        self.it = it
-        
-    def __next__(self):
-        return self.it.__next__()
-    
-    def __deepcopy__(self, memo):
-#        print("deepcopy")
-        return self
-
 class Ctx:
     def __init__(self):
         self.vals = values_new()
@@ -133,9 +122,8 @@ class Ctx:
             
     def foriter(self, arg, label):
 #        print("called foriter", arg)
-        if isinstance(arg.it, ObliviousRange): arg.it.foriter(label)
+        if isinstance(arg, ObliviousRange): arg.foriter(label)
         
     def getiter(self, itr):
-        #return iter(itr)
-        return IterWrapper(iter(itr))
+        return iter(itr)
         
