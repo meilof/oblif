@@ -38,7 +38,6 @@ class values:
 def apply_to_label(contexts, vals, cond, label):
 #        print_ctx("applying to label", label)
     if not label in contexts:
-#            print_ctx("first time, setting dict to", vals)
         if cond is True:
             contexts[label] = vals
             return None
@@ -48,45 +47,29 @@ def apply_to_label(contexts, vals, cond, label):
             vals["__guard"] &= (1-cond)
             return vals
     else:
-        if cond is True:
-            guard1 = vals["__guard"]
+        have_else = not cond is True
+        guardif = vals["__guard"] & cond
+        dictif = {}
+        if have_else: 
+            guardelse = vals["__guard"] & (1-cond)
+            dictelse = {}
 
-            d1old = contexts[label].dic
-            d2old = vals.dic
-            d1new = {}
+        dictorig = contexts[label].dic
+        dictiforig = vals.dic
 
-            for nm in d1old:
-                if nm in d2old:
-                    if d1old[nm] is d2old[nm]:
-                        d1new[nm] = d1old[nm]
-                    else:
-                        d1new[nm] = cachedifthenelse(guard1, d2old[nm], d1old[nm])
-            d1new["__guard"] = d1old["__guard"]|d2old["__guard"]
-            contexts[label].dic = d1new            
-            return None
-        else:
-            guard1 = vals["__guard"] & cond
-            guard2 = vals["__guard"] & (1-cond)
-            
-            d1old = contexts[label].dic
-            d2old = vals.dic
-            d1new = {}
-            d2new = {}
+        for nm in dictorig:
+            if nm in dictiforig:
+                if (vif:=dictiforig[nm]) is (velse:=dictorig[nm]):
+                    dictif[nm] = vif
+                    if have_else: dictelse[nm] = vif
+                else:
+                    dictif[nm] = cachedifthenelse(guardif, vif, velse)
+                    if have_else: dictelse[nm] = vif
 
-            for nm in d1old:
-                if nm in d2old:
-                    if d1old[nm] is d2old[nm]:
-                        d1new[nm] = d1old[nm]
-                        d2new[nm] = d1old[nm]
-                    else:
-                        d1new[nm] = cachedifthenelse(guard1, d2old[nm], d1old[nm])
-                        d2new[nm] = d2old[nm]
-
-            d1new["__guard"] = guard1
-            d2new["__guard"] = guard2
-            contexts[label].dic = d1new
-            return values(d2new)
-
+        dictif["__guard"] = dictorig["__guard"]|guardif
+        if have_else: dictelse["__guard"] = guardelse
+        contexts[label].dic = dictif
+        return values(dictelse) if have_else else None
 
 def values_new():
     return values({})
