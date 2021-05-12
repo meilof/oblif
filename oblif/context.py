@@ -44,7 +44,7 @@ class Ctx:
 #        else:
 #            print("and no context")
         if self.vals:
-            apply_to_label(self.contexts, self.vals, True, label)
+            self.vals = apply_to_label(self.contexts, self.vals, True, label)
         if label in self.contexts:
             self.vals = self.contexts[label]
             del self.contexts[label]
@@ -71,12 +71,10 @@ class Ctx:
         elif guard is False:
 #            print_ctx("* if, guard is false, so skip")
             # guard evaluates to false, we want to jump
-            apply_to_label(self.contexts, self.vals, True, label)
-            self.vals = None
+            self.vals = apply_to_label(self.contexts, self.vals, True, label)
         else:
 #            print_ctx("* if, guard is oblivious", guard)
-            apply_to_label(self.contexts, self.vals, 1-guard, label) # TODO: why not ~?
-            self.vals["__guard"] &= guard
+            self.vals = apply_to_label(self.contexts, self.vals, 1-guard, label) # TODO: why not ~?
             
     def pjit(self, stack, label):
         self.vals["__stack"] = tuple(stack[:-1])
@@ -95,12 +93,10 @@ class Ctx:
         elif guard is True:
 #            print_ctx("* ifneg, guard is true, so skip")
             # guard evaluates to true, we want to jump
-            apply_to_label(self.contexts, self.vals, True, label)
-            self.vals = None
+            self.vals = apply_to_label(self.contexts, self.vals, True, label)
         else:
 #            print_ctx("* if, guard is oblivious", guard)
-            apply_to_label(self.contexts, self.vals, guard, label)
-            self.vals["__guard"] &= (1-guard) # TODO: why not ~?
+            self.vals = apply_to_label(self.contexts, self.vals, guard, label)
         
     def stack(self, stack):
 #        print("stacking", stack)
@@ -119,15 +115,13 @@ class Ctx:
     def jmp(self, stack, label):
 #        print("jmp", stack, label)
         self.vals["__stack"] = stack
-        apply_to_label(self.contexts, self.vals, True, label)
-        self.vals = None
+        self.vals = apply_to_label(self.contexts, self.vals, True, label)
 #        print_ctx("jmp done")
 
     def ret(self, arg, label): # same as jmp
 #        print("calling ret", arg, label, self.vals)
         self.vals["__stack"] = (arg,)
-        apply_to_label(self.contexts, self.vals, True, label)  # TODO: sufficient to only apply __stack?!
-        self.vals = None
+        self.vals = apply_to_label(self.contexts, self.vals, True, label)  # TODO: sufficient to only apply __stack?!
         
 #    def doret(self, label):
 #        print("calling doret", label)

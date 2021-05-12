@@ -64,5 +64,6 @@ class OblivVal:
     __rand__ = __and__
     
     def __deepcopy__(self, memo):
+        print("*** calling deepcopy on", self)
         return self
         

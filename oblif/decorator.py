@@ -311,7 +311,17 @@ def _oblif(code):
                 # TODO: more generic
                 newcode.extend(callstack("stack", ssizes[ix], lineno))
             newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, lineno))
-            if ssizes[ix]!=0: newcode.extend(callunstack("unstack", ssizes[ix], lineno))
+            if ssizes[ix]!=0: 
+##                # compute how much of the stack is needed until next label
+##                minsz = ssizes[ix]
+##                ix2 = ix+1
+##                while (not ix2 in label_at) and ix2<len(bc):
+##                    print("checking", ix2, ssizes[ix2])
+##                    if ssizes[ix2]<minsz: minsz = ssizes[ix2]
+##                    ix2+=1
+##                if ix2<len(bc) and ssizes[ix2]<minsz: minsz = ssizes[ix2]
+#                print(label_at[ix], "current stack", ssizes[ix], "min stack", minsz)
+                newcode.extend(callunstack("unstack", ssizes[ix], lineno))
                 
         if not isinstance(instr, Instr): continue
             
