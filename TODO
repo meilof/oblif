@@ -1,88 +1,32 @@
-- need to check if stack is consumed, not necessarily size
-
-- refcount id
-- dict.isowner
-- als refcount 0 wordt, dan kun je hem ownen, of uit de dict verwijderen (dat kan ook!)
-- bij stack pushen ben je owner, bij stack poppen niet, maar doe dat alleen als nodig
-- niet refcounten als id(deepcopy(x))==id(x)
-- Check bij maken lazyifelse alvast of hetzelfde
-- Als een van beide in gets dan res ook. Als niet triviale ifthenelse dan ook in gets
-- Minimale stack push en pop
-- Check what break in for does
-- Alles wat uit if then else komt kan al in sets
-
-
-Ifthenelse en guarded ifthenelse (split): aparte gevallen!
-Check bij maken lazyifelse alvast of hetzelfde
-
-* refactoren, cor dict naar aparte klasse verplaatsen, onderscheid maken tussen
-  vals, collectvals, bij implementatie "move semantics" imiteren, 
-  
-  
-  Als je appliet met true dan geen copy nodig? Move semantics emuleren? Als we apply trye doen dan altijd zelf.vals? Movectx functie? Maar op dest kan al wel dus staan
-  
-  Ook .get zonder deepcopy, parent dan ook geen deepcop
-  
-  caching toch in dic zelf met getter van parent?
-  
-  Both branches need to deepcopy!
-  
-  Deepcopy in cordict, ongeacht of ensemble of niet (evt: altijd ensemble, maar dat is wel overhead); je wilt wel caching van combinaties van guards!
-  
-  Hmm cachedifelse zou beter kunnen zijn dan ensemble want caching op alle levels... hangt er van af... gebruiker kan zelf ensemble gebruiken als object duurder dan guard, support immubableensemble as well
-  
-  Gebruik normale dict code voor guards, zijn toch immutable!
-  
-  probleem met deepcopyen van de stack is dat er ook ranges in zitten, die wil je niet deepcopy'en
-  maar moet een ifthenelse uberhaupt wel worden gekopieerd?
-  
-
 * Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
-
 * lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
-* relative guards
+* relative guards?
   Relative guarding: xab, a^b, maak er xac van, c is b of ^b en dus 1, dan met
   x^a, zou goed moeten gaan? Eerst niet doen! Depends on order? Probably not
-* implementeer oblivious proxy/ensemble: _(obj), dereference with ._(),
-  cartesisch product guards bij functietoepassing
 
 * What to do if oblivious guard is not a bit?
 * Use array indexing instead of get, set
-* Deepcopy?
-
-* make ctx, __guard accessible to code (ctx: turn into load_local and do not process, __guard: turn into load_local)
 
 * documentatie 
   - behaviour on globals is undefined
   - for does not test oblivious initial conditions
   - implement bit assertions/conversions on guard
+  - no mutable object
 
 * for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
 * allerlei tests met f(x)==x.val if x:=oblif(f)(oblif(args)).val if isinstance(x,OblivVal) else x
 * kijken of bij return de context triviaal is
 
-Generieke obliv-wrap die alles doorgeeft aan zijn onderliggende value (modulo een paar optimalisaties)
+* implementeer oblivious proxy/ensemble: _(obj), dereference with ._(),
+  cartesisch product guards bij functietoepassing
+* Generieke obliv-wrap die alles doorgeeft aan zijn onderliggende value (modulo een paar optimalisaties)?
 
-Ook met spdz proberen?
+* Ook met spdz proberen?
 
-Native variant met decorators? Toch over nadenken?
+* Native variant met decorators? Toch over nadenken?
 
-a and a, a or a: return self, is that required or just more efficient?
+* a and a, a or a: return self, is that required or just more efficient?
 
-Oblif membrr funvtion; avoid deepcopy on self, use var_ to denote no use of ctx! Of standaard geen deepcopy kan ook! 
-
-If then else lazy with ensemble: dict{id: guard} --> vermijd onnodig!
-
-* for loops
-   - syntax die ook voor normale code werkt? for i in range(0,min(a,b))?
-   - alleen voor tweede argument, alleen voor min?
-   - strides met (x==a or x+1==a) etc doen, we willen geen comparisons
-
-
-* Optimization: if state is split in two, only one needs to be deepcopied?! Keep hascopied for deepcopy
-* stack zetten/getten netter maken, komt de deepcopy alleen maar door het printen?
-
-* Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
 * Oblivrange: check if we gewone range kunnen retourneren
 
 * can we make it run on lambda's?
