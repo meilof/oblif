@@ -32,12 +32,20 @@ class values:
     def __setitem__(self, var, val):
         self.dic[var] = val
         
+    def __delitem__(self, var):
+        del self.dic[var]
+        
+    def clear(self):
+        self.dic = {}
+        
     def __repr__(self):
         return repr(self.dic)
     
 def apply_to_label(contexts, vals, cond, label):
 #        print_ctx("applying to label", label)
-    if not label in contexts:
+    if cond is False:
+        return vals
+    elif not label in contexts:
         if cond is True:
             contexts[label] = vals
             return None

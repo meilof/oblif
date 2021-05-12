@@ -30,12 +30,16 @@ class OblivVal:
         else:
             return OblivVal(self.val&other.val)
         
+    __rand__ = __and__
+        
     def __or__(self, other):
 #        print("calling __or__")
         if isinstance(other, int):
             return 1 if other else self
         else:
             return OblivVal(self.val|other.val)
+        
+    __ror__ = __or__
         
     def __eq__(self, other):
 #        print("call to eq")
