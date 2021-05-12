@@ -21,7 +21,7 @@ class cachedifthenelse:
             self.elseval = None
         return self.val
         
-class cor_dict:
+class values:
     def __init__(self, dic):
         self.dic = dic
         
@@ -43,7 +43,7 @@ def apply_to_label(contexts, vals, cond, label):
             contexts[label] = vals
             return None
         else:
-            contexts[label] = cor_dict(dict(vals.dic))
+            contexts[label] = values(dict(vals.dic))
             contexts[label]["__guard"] &= cond
             vals["__guard"] &= (1-cond)
             return vals
@@ -85,8 +85,8 @@ def apply_to_label(contexts, vals, cond, label):
             d1new["__guard"] = guard1
             d2new["__guard"] = guard2
             contexts[label].dic = d1new
-            return cor_dict(d2new)
+            return values(d2new)
 
 
 def values_new():
-    return cor_dict({})
+    return values({})
