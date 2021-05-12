@@ -1,0 +1,68 @@
+Notes on copy on write behaviour
+================================
+
+- if done, need to adapt stack popping/pushing to ensure that only what is used
+  is loaded, and then deepcopied
+   => otherwise iterators will occur in several contexts and thus need to be
+      deepcopied => although this can be dealt with with an immutable iter
+      wrapper
+   => need to check how much of stack is consumed, not necessarily min size
+      of stack during run => use pre_and_post_stack_effect
+      
+- global refcounting is needed, since the same object can occur several times
+  in the same context
+  
+     a = obj()
+     b = a
+     if guard:
+       a = None    # a appears to be ownable by the other branch
+     else 
+       b = None    # b appears to be ownable by the other branch
+     # afterwards, can own a and b?! will "a is b" hold?
+     
+- keeping invariant that there is always exactly one owner of an object is not
+  possible because there can be several variables referring to the same object
+  within a context => but can we keep the invariant that an object is owned by
+  exactly one context?
+  
+  
+Misc notes:
+
+- refcount id
+- dict.isowner
+- als refcount 0 wordt, dan kun je hem ownen, of uit de dict verwijderen (dat kan ook!)
+- bij stack pushen ben je owner, bij stack poppen niet, maar doe dat alleen als nodig
+- niet refcounten als id(deepcopy(x))==id(x)
+- Check bij maken lazyifelse alvast of hetzelfde
+- Als een van beide in gets dan res ook. Als niet triviale ifthenelse dan ook in gets
+- Minimale stack push en pop
+- Check what break in for does
+- Alles wat uit if then else komt kan al in sets
+
+
+Ifthenelse en guarded ifthenelse (split): aparte gevallen!
+Check bij maken lazyifelse alvast of hetzelfde
+
+* refactoren, cor dict naar aparte klasse verplaatsen, onderscheid maken tussen
+  vals, collectvals, bij implementatie "move semantics" imiteren, 
+  
+  
+  Als je appliet met true dan geen copy nodig? Move semantics emuleren? Als we apply trye doen dan altijd zelf.vals? Movectx functie? Maar op dest kan al wel dus staan
+  
+  Ook .get zonder deepcopy, parent dan ook geen deepcop
+  
+  caching toch in dic zelf met getter van parent?
+  
+  Both branches need to deepcopy!
+  
+  Deepcopy in cordict, ongeacht of ensemble of niet (evt: altijd ensemble, maar dat is wel overhead); je wilt wel caching van combinaties van guards!
+  
+  Hmm cachedifelse zou beter kunnen zijn dan ensemble want caching op alle levels... hangt er van af... gebruiker kan zelf ensemble gebruiken als object duurder dan guard, support immubableensemble as well
+  
+  Gebruik normale dict code voor guards, zijn toch immutable!
+  
+  probleem met deepcopyen van de stack is dat er ook ranges in zitten, die wil je niet deepcopy'en
+  maar moet een ifthenelse uberhaupt wel worden gekopieerd?
+
+* Optimization: if state is split in two, only one needs to be deepcopied?! Keep hascopied for deepcopy
+* stack zetten/getten netter maken, komt de deepcopy alleen maar door het printen?
