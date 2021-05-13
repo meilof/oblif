@@ -129,7 +129,7 @@ def callarg(meth, arg, lineno):
         Instr("POP_TOP", lineno = lineno)
     ]
 
-jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
+jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE", "FOR_ITER" }
 
 def get_function_args(instrs, ix):
     ix+=1
@@ -205,10 +205,8 @@ def compute_stack_sizes(bc):
             
     
 
-jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE" }
-
-
 def get_lineno(bc, ix):
+    if isinstance(bc[ix], Instr): return bc[ix].lineno
     ixl = ix+1
     while ixl<len(bc) and not isinstance(bc[ixl], Instr): ixl+=1
     return bc[ixl].lineno
@@ -291,6 +289,8 @@ def _oblif(code):
     label_ret_ix = len(bc)
     
     for (ix,instr) in enumerate(bc):
+        curlno = get_lineno(bc, ix)
+#        print("lineno", curlno)
         
         if ix in label_at:
 #            print("label at", ix, label_at, last_backjump_per_label)
@@ -305,54 +305,83 @@ def _oblif(code):
 #                print("not a while loop, next is", ix2)
                 
             nextlabel = label_ret if ix2==len(bc) else label_at[ix2]
-            lineno = get_lineno(bc, ix)
+            #lineno = get_lineno(bc, ix)
             
-            if isinstance(bc[ix-1],Instr) and not bc[ix-1].has_jump() and not bc[ix-1].name=="RETURN_VALUE" and ssizes[ix]!=0:
+            if not isinstance(bc[ix-1],Instr) or (not bc[ix-1].has_jump() and not bc[ix-1].name=="RETURN_VALUE" and not bc[ix-1].name=="FOR_ITER" and ssizes[ix]!=0):
                 # if previous block does not end with a jump, we have to manually stack up ourselves
                 # TODO: more generic
-                newcode.extend(callstack("stack", ssizes[ix], lineno))
-            newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, lineno))
-            if ssizes[ix]!=0: newcode.extend(callunstack("unstack", ssizes[ix], lineno))
+                newcode.extend(callstack("stack", ssizes[ix], curlno))
+            newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, curlno))
+            if ssizes[ix]!=0: newcode.extend(callunstack("unstack", ssizes[ix], curlno))
                 
         if not isinstance(instr, Instr): continue
             
         if instr.name=="STORE_FAST" and instr.arg[-1]!="_":
-            newcode.extend(callset(instr.arg, instr.lineno))
+            newcode.extend(callset(instr.arg, curlno))
         elif (instr.name=="LOAD_FAST" and instr.arg[-1]!="_") or (instr.name=="LOAD_GLOBAL" and instr.arg=="__guard"):
-            newcode.extend(callget(instr.arg, instr.lineno))
+            newcode.extend(callget(instr.arg, curlno))
         elif instr.name=="LOAD_GLOBAL" and instr.arg=="range":
             patch_range(bc,ix)
             newcode.append(bc[ix])
-        elif instr.name=="FOR_ITER":
-            newcode.extend(
-                [Instr("DUP_TOP", lineno=instr.lineno)] + 
-                callstackarg("foriter", labels[instr.arg], lineno=instr.lineno) +
-                [instr])
+        elif instr.name=="GET_ITER":
+            newcode.extend(callstack1("getiter", curlno))
+        elif instr.name=="FOR_ITER":                                    # stack = X|iter
+            newcode.extend([
+                 Instr("DUP_TOP", lineno=curlno),                 # stack = X|iter|iter
+                 Instr("LOAD_METHOD", "__next__", lineno=curlno), # stack = X|iter|iter|__iter__
+                 Instr("CALL_METHOD", 0, lineno=curlno),          # stack = X|iter|(val,cond)
+                 Instr("UNPACK_SEQUENCE", 2, lineno=curlno)] +    # stack = X|iter|val|cond
+                 callstackargs("pjif", ssizes[ix]+2, labels[instr.arg], lineno=curlno))
+#                
+#            label_nxt = Label()
+#            label_after = Label()
+#            newcode.extend(
+#                [Instr("FOR_ITER", label_nxt),
+#                 Instr("JUMP_FORWARD", label_after),
+#                 label_next] + 
+#                 newcode.extend(callstack("stack", ssizes[ix]-1, lineno)) +
+#                [Instr("JUMP_ABSOLUTE", )]
+#                 
+#                    "DUP_TOP", lineno=curlno),                 # stack = X|iter|iter
+#                 Instr("LOAD_METHOD", "__iter__", lineno=curlno), # stack = X|iter|iter|__iter__
+#                 Instr("CALL_METHOD", 0, lineno=curlno),          # stack = X|iter|(val,cond)
+#                 Instr("UNPACK_SEQUENCE", 2, lineno=curlno)]      # stack = X|iter|val|cond
+#                 + callstackargs("pjif", ssizes[ix]+2, labels[instr.arg], lineno=curlno))
+#            
+#            print("stack size at iter", ssizes[ix])
+#            newcode.extend(                                           
+#                [instr,                                               # stack = X|iter|(val,cond)
+#                 Instr("UNPACK_SEQUENCE", 2, lineno=curlno)] +  # stack = X|iter|val|cond
+#                 callstackargs("pjif", ssizes[ix]+2, labels[instr.arg], lineno=curlno) +
+#                 callunstack("unstack", ssizes[ix]+1, lineno=curlno))
+            # note that iter|val|cond should not be on the stack after the loop, but since
+            # this context will be merged with a context that doesn't have them, they will
+            # be thrown away anyway
         elif instr.name=="POP_JUMP_IF_FALSE":
             #if ssizes[ix]!=1: raise RuntimeError("extra stack depth at jump @" + str(ix))
-            newcode.extend(callstackargs("pjif", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
+            newcode.extend(callstackargs("pjif", ssizes[ix], labels[instr.arg], lineno=curlno))
         elif instr.name=="POP_JUMP_IF_TRUE":
             if ssizes[ix]!=1: raise RuntimeError("extra stack depth at jump @" + str(ix))
-            newcode.extend(callstackargs("pjit", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
+            newcode.extend(callstackargs("pjit", ssizes[ix], labels[instr.arg], lineno=curlno))
         elif instr.name=="JUMP_ABSOLUTE":
             #if ssizes[ix]!=0: raise RuntimeError("nonzero stack depth at jump @" + str(ix))
-            newcode.extend(callstackargs("jmp", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
+            newcode.extend(callstackargs("jmp", ssizes[ix], labels[instr.arg], lineno=curlno))
         elif instr.name=="JUMP_FORWARD":
-            newcode.extend(callstackargs("jmp", ssizes[ix], labels[instr.arg], lineno=instr.lineno))
+            newcode.extend(callstackargs("jmp", ssizes[ix], labels[instr.arg], lineno=curlno))
             #if ssizes[ix]==0:
-            #    newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
+            #    newcode.extend(callarg("jmp", labels[instr.arg], lineno=curlno))
             #elif ssizes[ix]==1: # jump as part of a ternary operator
-            #    newcode.extend(callset("__stack", lineno=instr.lineno))
-            #    newcode.extend(callarg("jmp", labels[instr.arg], lineno=instr.lineno))
+            #    newcode.extend(callset("__stack", lineno=curlno))
+            #    newcode.extend(callarg("jmp", labels[instr.arg], lineno=curlno))
             #else:
             #    raise RuntimeError("nonzero stack depth at jump @" + str(ix))
         elif instr.name=="RETURN_VALUE":
             if ssizes[ix]!=1: raise RuntimeError("unexpected stack elements on return @" + str(ix))
-            newcode.extend(callstackarg("ret", label_ret_ix, lineno=instr.lineno))
+            newcode.extend(callstackarg("ret", label_ret_ix, lineno=curlno))
         elif instr.name=="JUMP_IF_TRUE_OR_POP":
-            raise RuntimeError("JUMP_IF_TRUE_OR_POP not supported @" + str(instr.lineno))
+            raise RuntimeError("JUMP_IF_TRUE_OR_POP not supported @" + str(curlno))
         elif instr.name=="JUMP_IF_FALSE_OR_POP":
-            raise RuntimeError("JUMP_IF_FALSE_OR_POP not supported @" + str(instr.lineno))
+            raise RuntimeError("JUMP_IF_FALSE_OR_POP not supported @" + str(curlno))
         else:
             newcode.append(instr)
             
@@ -379,8 +408,8 @@ def _oblif(code):
 #        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))
 #    print("***")        
 #        
-#    newsz = compute_stack_sizes(bc)
-#        
+    newsz = compute_stack_sizes(bc)
+        
 #    print("***")
 #    for (ix,i) in enumerate(bc):
 #        print("*", ix, "*", newsz[ix], "*", instrstring(bc, i))

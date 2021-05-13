@@ -56,7 +56,7 @@ class values:
         return repr(self.dic)
     
 def apply_to_label(contexts, vals, cond, label):
-#        print_ctx("applying to label", label)
+#    print("applying to label", label, cond)
     if cond is False:
         return vals
     elif not label in contexts:
@@ -75,8 +75,10 @@ def apply_to_label(contexts, vals, cond, label):
         corig = contexts[label]
         if have_else: celse = values()
 
+#        print("doing ifthenelse", corig.dic.keys(), vals.dic.keys())
         for nm in corig:
             if nm in vals:
+#                print("both:", nm)
                 if (vif:=vals.get(nm)) is (velse:=corig.get(nm)):
                     cif[nm] = vif
                     if have_else: celse[nm] = vif

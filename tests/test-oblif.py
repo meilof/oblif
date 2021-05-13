@@ -119,6 +119,21 @@ class TestOblif(unittest.TestCase):
             return c        
         self.dotest(fn_if2, 1)
         self.dotest(fn_if2, 2)
+        
+    def test_recursive_for(self):
+        def fn(x):
+            for i in range(min(x,10)):
+                ret=i
+                for j in range(min(i,10)):
+                    ret=j
+            return ret
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)
+            
 
 if __name__ == '__main__':
     unittest.main()

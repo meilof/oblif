@@ -1,6 +1,6 @@
 from inspect import getframeinfo, stack
 
-from .iterators import orange, ObliviousRange
+from .iterators import orange, ObliviousIterator, IteratorWrapper
 from .values import apply_to_label, values_new
     
 def print_ctx(*args):
@@ -49,10 +49,12 @@ class Ctx:
             return False
         
     def pjif(self, stack, label):
-#        print_ctx("calling pjif, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
+#        print_ctx("calling pjif, stack=", stack, "label=", label)
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
+#        print("guard is", guard)
         self.vals = apply_to_label(self.contexts, self.vals, not guard if isinstance(guard,bool) else 1-guard, label)
+#        print("self.vals now", self.vals)
             
     def pjit(self, stack, label):
 #        print_ctx("calling pjit, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
@@ -65,7 +67,7 @@ class Ctx:
         for i in range(len(stack)): self.vals["__stack"+str(i)] = stack[i]
         
     def unstack(self, nstack):
-#        print("calling unstack", self.vals.dic["__stack"])
+#        print("calling unstack", nstack, self.vals)
         ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
         for i in range(nstack): del self.vals["__stack"+str(i)]
         return ret
@@ -84,8 +86,11 @@ class Ctx:
         
     def range(self, *args):
         return orange(self, *args)
+    
+    def getiter(self, it):
+        return iter(it) if isinstance(it, ObliviousIterator) else IteratorWrapper(iter(it))
             
-    def foriter(self, arg, label):
-        if isinstance(arg, ObliviousRange): arg.foriter(label)
+#    def foriter(self, arg, label):
+#        if isinstance(arg, ObliviousRange): arg.foriter(label)
 
         
