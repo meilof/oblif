@@ -98,8 +98,8 @@ def callunstack(meth, nstack, lineno):
     return [
         Instr("LOAD_FAST", "ctx", lineno = lineno),
         Instr("LOAD_METHOD", meth, lineno = lineno),
-        #Instr("LOAD_CONST", nstack, lineno = lineno),
-        Instr("CALL_METHOD", 0, lineno = lineno),
+        Instr("LOAD_CONST", nstack, lineno = lineno),
+        Instr("CALL_METHOD", 1, lineno = lineno),
         Instr("UNPACK_SEQUENCE", nstack, lineno = lineno),
     ]
 

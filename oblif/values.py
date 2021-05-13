@@ -15,10 +15,7 @@ class cachedifthenelse:
         if self.guard is not None:
             if isinstance(self.ifval,cachedifthenelse): self.ifval = self.ifval()
             if isinstance(self.elseval,cachedifthenelse): self.elseval = self.elseval()
-            if isinstance(self.ifval, tuple):
-                self.val = tuple([self.guard.if_else(x,y) for (x,y) in zip(self.ifval, self.elseval)])
-            else:
-                self.val = self.guard.if_else(self.ifval, self.elseval)
+            self.val = self.guard.if_else(self.ifval, self.elseval)
             self.guard = None
             self.ifval = None
             self.elseval = None

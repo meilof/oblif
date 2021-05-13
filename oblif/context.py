@@ -50,36 +50,36 @@ class Ctx:
         
     def pjif(self, stack, label):
 #        print_ctx("calling pjif, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
-        self.vals["__stack"] = tuple(stack[:-1])
+        self.stack(stack[:-1])
         guard = trytobool(stack[-1])
         self.vals = apply_to_label(self.contexts, self.vals, not guard if isinstance(guard,bool) else 1-guard, label)
             
     def pjit(self, stack, label):
 #        print_ctx("calling pjit, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
-        self.vals["__stack"] = tuple(stack[:-1])
+        self.stack(stack[:-1])
         guard = trytobool(stack[-1])
         self.vals = apply_to_label(self.contexts, self.vals, guard, label)
         
     def stack(self, stack):
 #        print("stacking", stack)
-        self.vals["__stack"] = stack
+        for i in range(len(stack)): self.vals["__stack"+str(i)] = stack[i]
         
-    def unstack(self):
+    def unstack(self, nstack):
 #        print("calling unstack", self.vals.dic["__stack"])
-        ret = tuple(reversed(self.vals["__stack"]))
-        del self.vals["__stack"]
+        ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
+        for i in range(nstack): del self.vals["__stack"+str(i)]
         return ret
             
     def jmp(self, stack, label):
 #        print("jmp", stack, label)
-        self.vals["__stack"] = stack
+        self.stack(stack)
         self.vals = apply_to_label(self.contexts, self.vals, True, label)
 
     def ret(self, arg, label): # same as jmp
         guard = self.vals["__guard"]
         self.vals.clear()
         self.vals["__guard"] = guard
-        self.vals["__stack"] = (arg,)
+        self.stack((arg,))
         self.vals = apply_to_label(self.contexts, self.vals, True, label)
         
     def range(self, *args):
