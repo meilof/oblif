@@ -6,6 +6,9 @@ class cachedifthenelse:
         self.ifval = ifval
         self.elseval = elseval
         self.val = None
+        
+    def get(self):
+        return self.val if self.guard is None else self
     
     def __call__(self):
 #        print("calling ifelse on", self.guard, self.ifval, self.elseval)
@@ -29,14 +32,26 @@ class values:
         if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
         return self.dic[var]
     
+    def get(self, var):
+        if isinstance(self.dic[var], cachedifthenelse): 
+            return self.dic[var].get()
+        else:
+            return self.dic[var]        
+    
     def __setitem__(self, var, val):
         self.dic[var] = val
         
     def __delitem__(self, var):
         del self.dic[var]
         
+    def __iter__(self):
+        return self.dic.__iter__()
+        
     def clear(self):
         self.dic = {}
+        
+    def copy(self):
+        return = values(dict(self.dic))
         
     def __repr__(self):
         return repr(self.dic)
@@ -50,34 +65,29 @@ def apply_to_label(contexts, vals, cond, label):
             contexts[label] = vals
             return None
         else:
-            contexts[label] = values(dict(vals.dic))
+            contexts[label] = vals.copy()
             contexts[label]["__guard"] &= cond
             vals["__guard"] &= (1-cond)
             return vals
     else:
         have_else = not cond is True
         guardif = vals["__guard"] & cond
-        dictif = {}
-        if have_else: 
-            guardelse = vals["__guard"] & (1-cond)
-            dictelse = {}
+        cif = values()
+        if have_else: celse = values()
 
-        dictorig = contexts[label].dic
-        dictiforig = vals.dic
-
-        for nm in dictorig:
-            if nm in dictiforig:
-                if (vif:=dictiforig[nm]) is (velse:=dictorig[nm]):
-                    dictif[nm] = vif
-                    if have_else: dictelse[nm] = vif
+        for nm in corig:
+            if nm in vals:
+                if (vif:=vals.get(nm)) is (velse:=corig.get(nm)):
+                    cif[nm] = vif
+                    if have_else: celse[nm] = vif
                 else:
-                    dictif[nm] = cachedifthenelse(guardif, vif, velse)
-                    if have_else: dictelse[nm] = vif
+                    cif[nm] = cachedifthenelse(guardif, vif, velse)
+                    if have_else: celse[nm] = vif
 
-        dictif["__guard"] = dictorig["__guard"]|guardif
-        if have_else: dictelse["__guard"] = guardelse
-        contexts[label].dic = dictif
-        return values(dictelse) if have_else else None
+        cif["__guard"] = corig["__guard"]|guardif
+        if have_else: celse["__guard"] = vals["__guard"] & (1-cond)
+        contexts[label] = cif
+        return celse if have_else else None
 
 def values_new():
     return values({})
