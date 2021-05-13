@@ -89,8 +89,4 @@ class Ctx:
     
     def getiter(self, it):
         return iter(it) if isinstance(it, ObliviousIterator) else IteratorWrapper(iter(it))
-            
-#    def foriter(self, arg, label):
-#        if isinstance(arg, ObliviousRange): arg.foriter(label)
-
         
