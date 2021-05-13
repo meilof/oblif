@@ -85,7 +85,7 @@ class Ctx:
         self.vals = apply_to_label(self.contexts, self.vals, True, label)
         
     def range(self, *args):
-        return orange(self, *args)
+        return orange(*args)
     
     def getiter(self, it):
         return iter(it) if isinstance(it, ObliviousIterator) else IteratorWrapper(iter(it))

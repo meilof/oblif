@@ -12,8 +12,7 @@ class IteratorWrapper:
 class ObliviousIterator: pass
 
 class ObliviousRange(ObliviousIterator):
-    def __init__(self, ctx, start, maxi, maxo, step):
-        self.ctx = ctx
+    def __init__(self, start, maxi, maxo, step):
         self.start = int(start)
         self.step = int(step)
         self.maxi = maxi
@@ -37,7 +36,7 @@ class ObliviousRange(ObliviousIterator):
         self.cur += self.step
         return (docont, self.cur)
             
-def orange_(ctx, minv, max1, max2, step):
+def orange_(minv, max1, max2, step):
     try:
         maxi = int(max1)
         try:
@@ -52,15 +51,15 @@ def orange_(ctx, minv, max1, max2, step):
         except:
             raise RuntimeError("at least one of the loop bounds must support int()")
     
-    return ObliviousRange(ctx, minv, maxi, maxo, step)
+    return ObliviousRange(minv, maxi, maxo, step)
         
-def orange(ctx, *args):
+def orange(*args):
     if len(args)==2:
-        return orange_(ctx, 0, args[0], args[1], 1)
+        return orange_(0, args[0], args[1], 1)
     elif len(args)==3:
-        return orange_(ctx, args[0], args[1], args[2], 1)
+        return orange_(args[0], args[1], args[2], 1)
     elif len(args)==4:
-        return orange_(ctx, args[0], args[1], args[2], 3)
+        return orange_(args[0], args[1], args[2], 3)
     else:
         raise RuntimeError("wrong number of arguments to range()")
     

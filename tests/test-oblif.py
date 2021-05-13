@@ -1,5 +1,6 @@
 import unittest
 
+from oblif.iterators import orange
 from oblif.decorator import oblif
 from oblif.types import OblivVal
 
@@ -134,7 +135,21 @@ class TestOblif(unittest.TestCase):
         self.dotest(fn, 10)
         self.dotest(fn, 111)
             
-
+    def test_recursive_for_orange(self):
+        def fn(x):
+            for i in orange(x,10):
+                ret=i
+                for j in orange(i,10):
+                    ret=j
+            return ret
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)
+            
+            
 if __name__ == '__main__':
     unittest.main()
     
