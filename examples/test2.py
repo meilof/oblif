@@ -16,13 +16,15 @@ def test(x):
 #    print("after", ret)        
 
     for i in range(min(x,10)):
-        print(i)
-        ret=i
-        for j in range(min(i,10)):
-            print("  ", j)
-            ret=j
-    print("after", ret)
-    return ret
+#        print(i)
+#        pass
+        if i==x-1: break
+#        ret=i
+#        for j in range(min(i,10)):
+#            print("  ", j)
+#            ret=j
+    #print("after", ret)
+    #return ret
 #            if x==3:
 #                ret = 1
 #            else:

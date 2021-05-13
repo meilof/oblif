@@ -1,10 +1,9 @@
 Short-term
-* for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
-* oblivrange: check if we gewone range kunnen retourneren
-* does ot work on lambda's?
-* Do we test for and a break? Docs: encourage to submit functions where not the same
+* does it work on lambda's?
+* Fix for and a break? 
 * Code coverage van tests bekijken
 * Wildgroei aan call-functies opschonen
+* compute_stack_sizes werkt niet met unreachable code
 
 Longer-term
 * kijken of bij return de context triviaal is
@@ -29,6 +28,7 @@ Document
 Assumptions for programmer:
 * No oblivious computations on immutables, globals
 * For does not test oblivious initial conditions
+* Encourage to submit functions where not the same
 
 Assumptions for backends:
 * Guard needs to be "binary" (|, &, 1-)

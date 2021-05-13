@@ -148,7 +148,34 @@ class TestOblif(unittest.TestCase):
         self.dotest(fn, 9)
         self.dotest(fn, 10)
         self.dotest(fn, 111)
-            
+        
+    def test_break_in_for(self):
+        def fn(x):
+            ret=0
+            for i in range(min(x,10)):
+                if i==x-1: break
+                ret=i
+                for j in range(min(i,10)):
+                    ret=j
+            return ret
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)
+        
+    def test_for_no_ops(self):
+        def fn(x):
+            for i in range(min(x,10)):
+                if i==x-1: break
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)
+
             
 if __name__ == '__main__':
     unittest.main()
