@@ -17,8 +17,8 @@ def test(x):
 
     for i in range(min(x,10)):
 #        print(i)
-#        pass
-        if i==x-1: break
+        pass
+#        if i==x-1: break
 #        ret=i
 #        for j in range(min(i,10)):
 #            print("  ", j)
@@ -32,4 +32,9 @@ def test(x):
 #            return ret        
 
 
-print("test(2) is", test(OblivVal(6)))
+#print("test(2) is", test(OblivVal(6)))
+
+test = lambda x: x*x if x==6 else 0
+test=oblif(test)
+
+print("test(2) is", test(OblivVal(5)))

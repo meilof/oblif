@@ -1,8 +1,8 @@
 Short-term
 * does it work on lambda's?
-* Fix for and a break? 
-* Code coverage van tests bekijken
-* Wildgroei aan call-functies opschonen
+* fix for and a break? 
+* code coverage van tests bekijken
+* wildgroei aan call-functies opschonen
 * compute_stack_sizes werkt niet met unreachable code
 
 Longer-term
@@ -29,6 +29,7 @@ Assumptions for programmer:
 * No oblivious computations on immutables, globals
 * For does not test oblivious initial conditions
 * Encourage to submit functions where not the same
+* Works on lambdas...
 
 Assumptions for backends:
 * Guard needs to be "binary" (|, &, 1-)
