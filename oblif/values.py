@@ -25,8 +25,8 @@ class cachedifthenelse:
         return self.val
         
 class values:
-    def __init__(self, dic):
-        self.dic = dic
+    def __init__(self):
+        self.dic = {}
         
     def __getitem__(self, var):
         if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
@@ -51,7 +51,9 @@ class values:
         self.dic = {}
         
     def copy(self):
-        return = values(dict(self.dic))
+        ret = values()
+        ret.dic = dict(self.dic)
+        return ret
         
     def __repr__(self):
         return repr(self.dic)
@@ -73,6 +75,7 @@ def apply_to_label(contexts, vals, cond, label):
         have_else = not cond is True
         guardif = vals["__guard"] & cond
         cif = values()
+        corig = contexts[label]
         if have_else: celse = values()
 
         for nm in corig:
@@ -90,4 +93,4 @@ def apply_to_label(contexts, vals, cond, label):
         return celse if have_else else None
 
 def values_new():
-    return values({})
+    return values()

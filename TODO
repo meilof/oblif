@@ -1,5 +1,5 @@
 Short-term
-* stack in aparte variabelen opslaan?
+* stack in aparte variabelen opslaan? dan tuple niet meer in if_else?
 * for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
 * oblivrange: check if we gewone range kunnen retourneren
 * does ot work on lambda's?
