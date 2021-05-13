@@ -1,33 +1,38 @@
-* Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
+Short-term
+* stack in aparte variabelen opslaan?
+* for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
+* oblivrange: check if we gewone range kunnen retourneren
+* does ot work on lambda's?
+
+Longer-term
+* kijken of bij return de context triviaal is
 * lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
+* Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
 * relative guards?
   Relative guarding: xab, a^b, maak er xac van, c is b of ^b en dus 1, dan met
   x^a, zou goed moeten gaan? Eerst niet doen! Depends on order? Probably not
-
 * What to do if oblivious guard is not a bit?
 * Use array indexing instead of get, set
-
-* documentatie 
-  - behaviour on globals is undefined
-  - for does not test oblivious initial conditions
-  - implement bit assertions/conversions on guard
-  - no mutable object
-
-* for: generic iterator __nextcode__, make sure same iterator can be used in oblivious and non-oblivious code
-* allerlei tests met f(x)==x.val if x:=oblif(f)(oblif(args)).val if isinstance(x,OblivVal) else x
-* kijken of bij return de context triviaal is
-
 * implementeer oblivious proxy/ensemble: _(obj), dereference with ._(),
   cartesisch product guards bij functietoepassing
-* Generieke obliv-wrap die alles doorgeeft aan zijn onderliggende value (modulo een paar optimalisaties)?
-
+* generieke obliv-wrap die alles doorgeeft aan zijn onderliggende value
+  (modulo een paar optimalisaties)? kunnen we daar toch een impliciete
+  deepcopy op doen?
 * Ook met spdz proberen?
-
 * Native variant met decorators? Toch over nadenken?
 
+
+Document
+
+Assumptions for programmer:
+* No oblivious computations on immutables, globals
+* For does not test oblivious initial conditions
+
+Assumptions for backends:
+* Guard needs to be "binary" (|, &, 1-)
+* Guard needs to support if_else
+* Immutability, if_then_else idempotence: no longer needed?
+* Note if_else acts on tuples
 * a and a, a or a: return self, is that required or just more efficient?
 
-* Oblivrange: check if we gewone range kunnen retourneren
-
-* can we make it run on lambda's?
 
