@@ -1,3 +1,11 @@
+Refactoring
+While compiling, print orig code, new code interleaved, start out with printing code and add our impl
+Call(stack: 1 of tuple, argslist, ret: 0 1 or tuple)
+Label returns false or stack, jumpiftrueorpop, jumpforward nextblock, jumplabel, unpack
+Keep source and target stack sizes, assert correspondence
+Comute stack size aa we go, if none then unreachable code
+Call jmp, ..., or nojmp at end of block
+
 Short-term
 * does it work on lambda's?
 * fix for and a break? 

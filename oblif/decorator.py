@@ -1,3 +1,4 @@
+import os
 import functools
 import types
 
@@ -217,23 +218,123 @@ def instrstring(bc, instr):
     return str(instr)
 
 def block_stack_effects(block):
-    for i in 
+    return (sum([i.stack_effect(False) for i in block]), 
+            sum([i.stack_effect(True) for i in block]))
+
+
+retcurdepth = 0
+retdepths = {}
+
+def add_to_code(lst, instrs):
+    global retcurdepth
+    global retdepths
+    
+    lst.extend(instrs)
+    for i in instrs: print("          ", retcurdepth, i)
+        
+    for i in instrs:
+        if isinstance(i, Instr):
+            if i.has_jump(): retdepths[id(i.arg)] = retcurdepth + i.stack_effect(True)
+            if i.is_uncond_jump():
+                retcurdepth = None
+            else:
+                retcurdepth += i.stack_effect(False)
+        elif isinstance(i, Label):
+            if retcurdepth is not None and retcurdepth != retdepths[id(i)]:
+                raise RuntimeError("inconsistent depths for label", i)
+            retcurdepth = retdepths[id(i)]
+    
+""" Return code for calling a context function, stack can be 0, 1, or (n), args can be a list, ret can be 0, 1, or (n) """
+def callcontext(fn, stack, args, rets, lineno):
+    ret = []
+    
+    if stack==0:
+        ret.extend([
+            Instr("LOAD_FAST", "ctx", lineno=lineno),
+            Instr("LOAD_METHOD", fn, lineno=lineno),
+        ])
+    elif stack==1:
+        ret.extend([
+            Instr("LOAD_FAST", "ctx", lineno=lineno),
+            Instr("LOAD_METHOD", fn, lineno=lineno),
+            Instr("ROT_THREE", lineno=lineno),
+            Instr("ROT_THREE", lineno=lineno),        
+        ])
+    elif isinstance(stack,tuple) and len(stack)==1:
+        ret.extend([
+            Instr("BUILD_TUPLE", nstack, lineno=lineno),
+            Instr("LOAD_FAST", "ctx", lineno=lineno),
+            Instr("LOAD_METHOD", fn, lineno=lineno),
+            Instr("ROT_THREE", lineno=lineno),
+            Instr("ROT_THREE", lineno=lineno),
+        ])
+    else:
+        raise RuntimeError("unexpected stack value: " + repr(stack))
+        
+    for arg in args: 
+        if isinstance(arg, Instr):
+            ret.append(arg)
+        else:
+            ret.append(Instr("LOAD_CONST", arg, lineno=lineno))
+            
+    ret.append(Instr("CALL_METHOD", len(args)+(0 if stack==0 else 1), lineno=lineno))
+    
+    if rets==0:
+        ret.append(Instr("POP_TOP", lineno=lineno))
+    elif rets==1:
+        pass
+    elif isinstance(rets,tuple):
+        ret.append(Instr("UNPACK_SEQUENCE", rets[0], lineno = lineno)),
+    else:
+        raise RuntimeError("unexpected return value: " + repr(rets))
+        
+    return ret
 
 def _oblif(code):
     """ Turn given code into data-oblivious code """
+    doprint = os.getenv("OBLIV_VERBOSE", "0")=="1"
+    
     bc = Bytecode.from_code(code)
     blocks = ControlFlowGraph.from_bytecode(bc)
     
     lineno = get_lineno(bc, 0)
-    newcode = init_code(lineno) + [ins for nm in bc.argnames for ins in storeinctx(nm, lineno)]    
+    newcode = []
+    add_to_code(newcode, init_code(lineno))
+    for nm in bc.argnames:
+        add_to_code(newcode, callcontext("set", 0, [nm, Instr("LOAD_FAST", nm, lineno = lineno)], 0, lineno))
+                
+                #[ins for nm in bc.argnames for ins in storeinctx(nm, lineno)])
     
     stack_sizes = {}
     stack_sizes[0] = 0              # stack size at start of block with given index 
 
     for block in blocks:
+        # invariant: stack is empty if we enter, context has stored stack
+        
+        
         bix = blocks.get_block_index(block)
         print("[" + str(stack_sizes[bix]) + "] Block #%s" % (bix))
+        
+        label_start = Label()
+        
+        add_to_code(newcode,
+            [label_start] +
+            callcontext("label", 0, [bix,stack_sizes[bix]], 
+                        (stack_sizes[bix],) if stack_sizes[bix]>0 else 1, block[0].lineno)
+            # returns False if label should not be executed
+            # otherwise True for an empty stack or (stackvalues,) for a non-empty stack
+                    
+        )
+#            newcode.extend([label_at[ix]] + callargjif("label", labels[label_at[ix]], nextlabel, curlno))
+#            if ssizes[ix]!=0: newcode.extend(callunstack("unstack", ssizes[ix], curlno))
+        
+        
         for instr in block:
+            
+            
+            
+            
+            
             if isinstance(instr.arg, BasicBlock):
                 arg = "<block #%s>" % (blocks.get_block_index(instr.arg))
             elif instr.arg is not UNSET:
@@ -246,8 +347,25 @@ def _oblif(code):
             #stack_sizes[blocks.get_block_index(block.next_block)] =
             print("    => <block #%s>"
                   % (blocks.get_block_index(block.next_block)))
-
+            
         print()
+            
+        (effect_nojump,effect_jump) = block_stack_effects(block)
+        
+        if block.next_block is not None:
+            bix2 = blocks.get_block_index(block.next_block)
+            ss2 = stack_sizes[bix] + effect_nojump
+            if bix2 in stack_sizes and stack_sizes[bix2]!=ss2:
+                raise ValueError("inconsistent stack depth at", bix2, "from", bix, ":", stack_sizes[bix2], ss2)
+            stack_sizes[bix2] = ss2
+            
+        if (target:=block.get_jump()) is not None:
+            bix2 = blocks.get_block_index(target)
+            ss2 = stack_sizes[bix] + effect_jump
+            if bix2 in stack_sizes and stack_sizes[bix2]!=ss2:
+                raise ValueError("inconsistent stack depth at", bix2, "from", bix, ":", stack_sizes[bix2], ss2)
+            stack_sizes[bix2] = ss2
+            
     
     labels = {}                      # given Label, gives number for it
     last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
