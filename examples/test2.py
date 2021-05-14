@@ -34,7 +34,7 @@ def test(x):
 
 #print("test(2) is", test(OblivVal(6)))
 
-test = lambda x: x*x if x==6 else 0
-test=oblif(test)
+#test = lambda x: x*x if x==6 else 0
+#test=oblif(test)
 
 print("test(2) is", test(OblivVal(5)))

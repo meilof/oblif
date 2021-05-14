@@ -1,4 +1,6 @@
 from bytecode import Bytecode, ControlFlowGraph, dump_bytecode
+from bytecode import UNSET, Label, Instr, Bytecode, BasicBlock, ControlFlowGraph
+
 import types
 
 def getfn(code, nm):
@@ -36,5 +38,23 @@ if __name__ == '__main__':
     #print()
 
     bytecode = Bytecode.from_code(fn)
-    #blocks = ControlFlowGraph.from_bytecode(bytecode)
-    dump_bytecode(bytecode)
+    blocks = ControlFlowGraph.from_bytecode(bytecode)
+    #dump_bytecode(bytecode)
+    
+
+    for block in blocks:
+        print("Block #%s" % (1 + blocks.get_block_index(block)))
+        for instr in block:
+            if isinstance(instr.arg, BasicBlock):
+                arg = "<block #%s>" % (1 + blocks.get_block_index(instr.arg))
+            elif instr.arg is not UNSET:
+                arg = repr(instr.arg)
+            else:
+                arg = ''
+            print("    %s %s" % (instr.name, arg))
+
+        if block.next_block is not None:
+            print("    => <block #%s>"
+                  % (1 + blocks.get_block_index(block.next_block)))
+
+        print()

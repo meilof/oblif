@@ -1,8 +1,8 @@
 import functools
 import types
 
-from bytecode import Label, Instr, Compare, Bytecode
-        
+from bytecode import UNSET, Label, Instr, Bytecode, BasicBlock, ControlFlowGraph
+
 def init_code(lineno):
     return [ # creation of context
         Instr("LOAD_CONST", 0, lineno = lineno),
@@ -216,22 +216,52 @@ def instrstring(bc, instr):
         return str(instr) + " => " + str(bc.index(instr.arg))
     return str(instr)
 
+def block_stack_effects(block):
+    for i in 
+
 def _oblif(code):
+    """ Turn given code into data-oblivious code """
+    bc = Bytecode.from_code(code)
+    blocks = ControlFlowGraph.from_bytecode(bc)
+    
+    lineno = get_lineno(bc, 0)
+    newcode = init_code(lineno) + [ins for nm in bc.argnames for ins in storeinctx(nm, lineno)]    
+    
+    stack_sizes = {}
+    stack_sizes[0] = 0              # stack size at start of block with given index 
+
+    for block in blocks:
+        bix = blocks.get_block_index(block)
+        print("[" + str(stack_sizes[bix]) + "] Block #%s" % (bix))
+        for instr in block:
+            if isinstance(instr.arg, BasicBlock):
+                arg = "<block #%s>" % (blocks.get_block_index(instr.arg))
+            elif instr.arg is not UNSET:
+                arg = repr(instr.arg)
+            else:
+                arg = ''
+            print("    %s %s" % (instr.name, arg))
+
+        if block.next_block is not None:
+            #stack_sizes[blocks.get_block_index(block.next_block)] =
+            print("    => <block #%s>"
+                  % (blocks.get_block_index(block.next_block)))
+
+        print()
+    
     labels = {}                      # given Label, gives number for it
     last_backjump_per_label = {}     # given Label, give index of last instruction jumping back to it
     label_at = {}                    # given index, give label at that index
     backjump_to = {}                 # given index, give label to which this index is the last jump instruction
     
-    """ Turn given code into data-oblivious code """
-    bc = Bytecode.from_code(code)
+
     
 #    print("***")
 #    for (ix,i) in enumerate(bc):
 #        print(ix, "*", instrstring(bc, i))
 #    print("***")
     
-    lineno = get_lineno(bc, 0)
-    newcode = init_code(lineno) + [ins for nm in bc.argnames for ins in storeinctx(nm, lineno)]
+
     
     # make scan through code:
     # - number labels
