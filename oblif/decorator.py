@@ -305,8 +305,9 @@ def _oblif(code):
     
     add_to_code(newcode,
         [labels[len(blocks)]] + 
-        callcontext("retlabel", 0, [len(blocks)], 1, blocks[-1][-1].lineno) +
-        [Instr("RETURN_VALUE")])
+        callcontext("label", 0, [len(blocks),1], 1, blocks[-1][-1].lineno) +
+        [Instr("UNPACK_SEQUENCE", 1, lineno=block[0].lineno),
+         Instr("RETURN_VALUE")])
             
     bc.clear()
     for bci in newcode: bc.append(bci)

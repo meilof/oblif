@@ -94,10 +94,6 @@ class Ctx:
         self.contexts[label] = apply_to_label(self.contexts.get(label), self.vals, True)
         self.vals = None
         
-    def retlabel(self, label):
-#        print("retlabel", label, self.contexts)
-        return self.contexts[label]["__stack0"]
-        
     def range(self, *args):
         return orange(*args)
     

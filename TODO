@@ -1,29 +1,5 @@
-* no special treatment for ret
-* we willen eigenlijk wel dat in
-
-   def fn(x)
-     if x==4:
-       a=4
-     else
-       a=5
-     a=3 ... we hier weten dat de guard triviaal is... of maakt dat niet uit?
-
-Refactoring
-While compiling, print orig code, new code interleaved, start out with printing code and add our impl
-Call(stack: 1 of tuple, argslist, ret: 0 1 or tuple)
-Label returns false or stack, jumpiftrueorpop, jumpforward nextblock, jumplabel, unpack
-Keep source and target stack sizes, assert correspondence
-Comute stack size aa we go, if none then unreachable code
-Call jmp, ..., or nojmp at end of block
-
-Short-term
-* does it work on lambda's?
-* fix for and a break? 
-* code coverage van tests bekijken
-* wildgroei aan call-functies opschonen
-* compute_stack_sizes werkt niet met unreachable code
-
 Longer-term
+* code coverage van tests bekijken
 * kijken of bij return de context triviaal is
 * lazy evalation: testen, in voorbeeld kijken of onnodige ifelsess gebeuren?
 * Switch naar bytecode controlflowgraph? Loops in termen daarvan detecteren?
