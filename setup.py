@@ -3,8 +3,10 @@
 from setuptools import setup
 
 setup(name='oblif',
-      version='0.2.0',
+      version='0.2.1',
       description='Bytecode transformations to produce data-oblivious code',
+      long_description = open("README.md").read(),
+      long_description_content_type='text/markdown',
       author='Meilof Veeningen',
       author_email='meilof@gmail.com',
       url='https://github.com/meilof/oblif',
