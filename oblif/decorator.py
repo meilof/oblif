@@ -308,7 +308,7 @@ def _oblif(code):
     retdepths = {}
     
     """ Turn given code into data-oblivious code """
-    doprint = os.getenv("OBLIV_VERBOSE", "0")=="1"
+    doprint = os.getenv("OBLIF_VERBOSE", "0")=="1"
     
     bc = Bytecode.from_code(code)
     blocks = ControlFlowGraph.from_bytecode(bc)
@@ -335,7 +335,7 @@ def _oblif(code):
         # invariant: stack is empty if we enter, context has stored stack
         #bix = blocks.get_block_index(block)
         if doprint: print("[" + str(stack_sizes[bix]) + "] Block #%s" % (bix))
-        
+            
         if (b:=block.get_jump()) is not None and \
            (bix2:=blocks.get_block_index(b))<bix and  \
            last_backjump_to[bix2]==bix:
@@ -351,6 +351,16 @@ def _oblif(code):
             # normal block, jump to next
             nextlabel = labels[bix+1]
             backjump_to = None
+            
+        if not bix in stack_sizes:
+            # this looks like dead code, skip it
+            # TODO: this cannot handel labels that can only be reached from later code,
+            # does that ever happen?
+            if bix in last_backjump_to: raise RuntimeError("block reachable only by back jump")
+            add_to_code(newcode, [labels[bix]])
+            if backjump_to is not None:
+                add_to_code(newcode, [Instr("JUMP_ABSOLUTE", backjump_to, lineno=block[-1].lineno)])
+            continue
             
         (effect_nojump,effect_jump) = block_stack_effects(block)
         

@@ -14,11 +14,8 @@ def test(x):
 #        print(i)
 #        ret=i
 #    print("after", ret)  
-    ret=1
-    for i in range(min(x,5)):
-        k=(1 if x==4 else 2 if x==5 else 3)
-        if k==1: ret=0
-    return k
+    for i in range(min(x,10)):
+        if i==x-1: break
 
 #    for i in range(min(x,10)):
 #        print(i)

@@ -37,13 +37,11 @@ class Ctx:
 #        print_ctx("calling set var=", var, "val=", val, "with", self.vals)
         self.vals[var] = val
             
-    def label(self, label, nstack):
-#        print_ctx("entering label", label, "with context", self.vals)
-            
+    def label(self, label, nstack):    
         if label in self.contexts and self.contexts[label] is not None:
 #            print("executing code", self.contexts[label])
-#            print_ctx("executing code under guard", self.vals["__guard"])
             self.vals = self.contexts[label]
+#            print_ctx("entering", label, "under guard", self.vals["__guard"])
             del self.contexts[label]
             if nstack:
                 ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
@@ -52,16 +50,20 @@ class Ctx:
             else:
                 return True
         else:
-#            print_ctx("no reason to execute code, skipping")
+#            print_ctx("not entering", label)
             return False
     
     def pjif(self, stack, labelnext, labeljump):
-        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])
+#        print_ctx("calling pjif, label=", labelnext, "/", labeljump, "curguard", self.vals["__guard"], "jumpguard", stack[-1])
+#        if labelnext in self.contexts and self.contexts[labelnext] is not None: print("prev next guard ", self.contexts[labelnext]["__guard"])
+#        if labeljump in self.contexts and self.contexts[labeljump] is not None: print("prev jump guard ", self.contexts[labeljump]["__guard"])
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
         guari = not guard if isinstance(guard,bool) else 1-guard
         self.contexts[labelnext] = apply_to_label(self.contexts.get(labelnext), self.vals, guard)
         self.contexts[labeljump] = apply_to_label(self.contexts.get(labeljump), self.vals, guari)
+#        if self.contexts[labelnext] is not None: print("next guard ", self.contexts[labelnext]["__guard"])
+#        if self.contexts[labeljump] is not None: print("jump guard ", self.contexts[labeljump]["__guard"])
         self.vals = None
             
     def pjit(self, stack, labelnext, labeljump):
@@ -78,7 +80,7 @@ class Ctx:
         for i in range(len(stack)): self.vals["__stack"+str(i)] = stack[i]
         
     def jmp(self, stack, label):
-        print("jmp", stack, label)
+#        print("jmp", label, "curguard", self.vals["__guard"])
         self.stack(stack)
         self.contexts[label] = apply_to_label(self.contexts.get(label), self.vals, True)
         self.vals = None

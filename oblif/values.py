@@ -56,18 +56,23 @@ class values:
         return repr(self.dic)
     
 def apply_to_label(orig, vals, cond):
-    print("applying to label", orig, vals, cond)
+#    print("applying to label", orig, vals, cond)
+#    print("applying to label")
     if cond is False:
+#        print("returning orig")
         return orig
     elif orig is None:
         if cond is True:
+#            print("returning vals")
             return vals
         else:
+#            print("copying vals")
             ret = vals.copy()
             ret["__guard"] &= cond
             return ret
     else:
-        print("doing ifthenelse", "orig", orig["__guard"], "vals", vals["__guard"], "cond", cond)
+#        print("doing ifthenselse", )
+        #print("doing ifthenelse", "orig", orig["__guard"], "vals", vals["__guard"], "cond", cond)
         ret = values()
         ifguard = vals["__guard"] & cond
         for nm in orig:
@@ -78,7 +83,7 @@ def apply_to_label(orig, vals, cond):
                     if ifguard is True or ifguard is False or isinstance(ifguard,int):
                         raise RuntimeError("trivial guard")
                     ret[nm] = cachedifthenelse(ifguard, vif, velse)
-        ret["__guard"] |= cond
+        ret["__guard"] |= ifguard
         return ret
 
 def values_new():
