@@ -4,176 +4,6 @@ import types
 
 from bytecode import UNSET, Label, Instr, Bytecode, BasicBlock, ControlFlowGraph
 
-def init_code(lineno):
-    return [ # creation of context
-        Instr("LOAD_CONST", 0, lineno = lineno),
-        Instr("LOAD_CONST",  None, lineno = lineno),
-        Instr("IMPORT_NAME",  'oblif.context', lineno = lineno),
-        Instr("STORE_FAST",  'oblif', lineno = lineno),
-        Instr("LOAD_FAST",  'oblif', lineno = lineno),
-        Instr("LOAD_ATTR",  'context', lineno = lineno),
-        Instr("LOAD_METHOD",  'Ctx', lineno = lineno),
-        Instr("CALL_METHOD",  0, lineno = lineno),
-        Instr("STORE_FAST",  'ctx', lineno = lineno)
-    ]
-#        Instr("LOAD_CONST", 0, lineno = lineno),
-#        Instr("LOAD_CONST", None, lineno = lineno),
-#        Instr("IMPORT_NAME", "context", lineno = lineno),
-#        Instr("LOAD_METHOD", "Ctx", lineno = lineno),
-#        Instr("CALL_METHOD", 0, lineno = lineno),
-#        Instr("STORE_FAST", "ctx", lineno = lineno),
-#    ]
-
-def callstack1(fn, lineno):
-    return \
-        [Instr("LOAD_FAST", "ctx", lineno=lineno), 
-         Instr("LOAD_METHOD", fn, lineno=lineno),
-         Instr("ROT_THREE", lineno=lineno), 
-         Instr("ROT_THREE", lineno=lineno), 
-         Instr("CALL_METHOD", 1, lineno=lineno)]   
-
-def callset(var, lineno):
-    return \
-        [Instr("LOAD_FAST", "ctx", lineno=lineno), 
-         Instr("LOAD_METHOD", "set", lineno=lineno),
-         Instr("LOAD_CONST", var, lineno=lineno),
-         Instr("ROT_FOUR", lineno=lineno), 
-         Instr("ROT_FOUR", lineno=lineno), 
-         Instr("ROT_FOUR", lineno=lineno), 
-         Instr("CALL_METHOD", 2, lineno=lineno),
-         Instr("POP_TOP", lineno=lineno)]    
-
-def callget(var, lineno):
-    return \
-        [Instr("LOAD_FAST", "ctx", lineno=lineno),
-         Instr("LOAD_METHOD", "get", lineno=lineno),
-         Instr("LOAD_CONST", var, lineno=lineno), 
-         Instr("CALL_METHOD", 1, lineno=lineno)]        
-    
-def storeinctx(nm, lineno):
-    return [ # variable initialization
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", "set", lineno = lineno),
-        Instr("LOAD_CONST", nm, lineno = lineno),
-        Instr("LOAD_FAST", nm, lineno = lineno),
-        Instr("CALL_METHOD", 2, lineno = lineno),
-        Instr("POP_TOP", lineno = lineno)
-    ]
-
-def callstack(meth, nstack, lineno):
-    return [
-        Instr("BUILD_TUPLE", nstack, lineno = lineno),
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("ROT_THREE", lineno = lineno),
-        Instr("ROT_THREE", lineno = lineno),
-        Instr("CALL_METHOD", 1, lineno = lineno),
-        Instr("POP_TOP", lineno = lineno)
-    ]
-
-
-def callstackarg(meth, arg, lineno):
-    return [
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("ROT_THREE", lineno = lineno),
-        Instr("ROT_THREE", lineno = lineno),
-        Instr("LOAD_CONST", arg, lineno = lineno),
-        Instr("CALL_METHOD", 2, lineno = lineno),
-        Instr("POP_TOP", lineno = lineno)
-    ]
-
-def callstackargs(meth, nstack, arg, lineno):
-    return [
-        Instr("BUILD_TUPLE", nstack, lineno = lineno),
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("ROT_THREE", lineno = lineno),
-        Instr("ROT_THREE", lineno = lineno),
-        Instr("LOAD_CONST", arg, lineno = lineno),
-        Instr("CALL_METHOD", 2, lineno = lineno),
-        Instr("POP_TOP", lineno = lineno)
-    ]
-
-def callunstack(meth, nstack, lineno):
-    return [
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("LOAD_CONST", nstack, lineno = lineno),
-        Instr("CALL_METHOD", 1, lineno = lineno),
-        Instr("UNPACK_SEQUENCE", nstack, lineno = lineno),
-    ]
-
-def callargnopop(meth, arg, lineno):
-    return [
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("LOAD_CONST", arg, lineno = lineno),
-        Instr("CALL_METHOD", 1, lineno = lineno),
-    ]
-
-def callargjif(meth, arg, label, lineno):
-    return [
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("LOAD_CONST", arg, lineno = lineno),
-        Instr("CALL_METHOD", 1, lineno = lineno),
-        Instr("POP_JUMP_IF_FALSE", label, lineno = lineno)
-    ]
-
-def callarg(meth, arg, lineno):
-    return [
-        Instr("LOAD_FAST", "ctx", lineno = lineno),
-        Instr("LOAD_METHOD", meth, lineno = lineno),
-        Instr("LOAD_CONST", arg, lineno = lineno),
-        Instr("CALL_METHOD", 1, lineno = lineno),
-        Instr("POP_TOP", lineno = lineno)
-    ]
-
-jumpinstrs = { "JUMP_FORWARD", "JUMP_ABSOLUTE", "POP_JUMP_IF_FALSE", "POP_JUMP_IF_TRUE", "RETURN_VALUE", "FOR_ITER" }
-
-
-        
-def compute_stack_sizes(bc):
-    ssizes = {0:0}
-    for (ix,instr) in enumerate(bc):
-#        print(ix, "*", ssizes[ix], "*", instrstring(bc,instr))
-        
-        if isinstance(instr, Label):
-            ssizes[ix+1] = ssizes[ix]
-            continue
-        
-        nextsize = ssizes[ix] + instr.stack_effect()
-        if instr.has_jump():
-            nextsize2 = nextsize if instr.name!="FOR_ITER" else nextsize-2
-            ix2 = bc.index(instr.arg)
-            if ix2 in ssizes and ssizes[ix2]!=nextsize2:
-                raise RuntimeError("inconsistent stack depth at #" + str(ix2) + ": " + 
-                                   str(nextsize2) + " vs " + str(ssizes[ix2]))
-            ssizes[ix2] = nextsize2
-        if not instr.is_uncond_jump():
-            ssizes[ix+1] = nextsize
-            
-    return ssizes
-            
-    
-
-def get_lineno(bc, ix):
-    if isinstance(bc[ix], Instr): return bc[ix].lineno
-    ixl = ix+1
-    while ixl<len(bc) and not isinstance(bc[ixl], Instr): ixl+=1
-    return bc[ixl].lineno
-
-def instrstring(bc, instr):
-    if isinstance(instr, Instr) and instr.has_jump():
-        return str(instr) + " => " + str(bc.index(instr.arg))
-    return str(instr)
-
-def block_stack_effects(block):
-    return (sum([i.stack_effect(False) for i in block]), 
-            sum([i.stack_effect(True) for i in block]))
-
-
 retcurdepth = 0
 retdepths = {}
 
@@ -250,7 +80,6 @@ def callcontext(fn, stack, args, rets, lineno):
         
     return ret
 
-
 def get_function_args(instrs, ix):
     ix+=1
     args = {}
@@ -301,22 +130,32 @@ def patch_range(instrs, ix):
 #    for i in range(ix, args[len(args)-1]+3):
 #        print(i, instrs[i])
 
-def _oblif(code):
+""" Turn given code into data-oblivious code """
+def _oblif(code): 
     global retcurdepth
     global retdepths
     retcurdepth = 0
     retdepths = {}
     
-    """ Turn given code into data-oblivious code """
     doprint = os.getenv("OBLIF_VERBOSE", "0")=="1"
     
     bc = Bytecode.from_code(code)
     blocks = ControlFlowGraph.from_bytecode(bc)
     
     # initialization code
-    lineno = get_lineno(bc, 0)
+    lineno = blocks[0][0].lineno
     newcode = []
-    add_to_code(newcode, init_code(lineno))
+    add_to_code(newcode, [
+                    Instr("LOAD_CONST", 0, lineno = lineno),
+                    Instr("LOAD_CONST",  None, lineno = lineno),
+                    Instr("IMPORT_NAME",  'oblif.context', lineno = lineno),
+                    Instr("STORE_FAST",  'oblif', lineno = lineno),
+                    Instr("LOAD_FAST",  'oblif', lineno = lineno),
+                    Instr("LOAD_ATTR",  'context', lineno = lineno),
+                    Instr("LOAD_METHOD",  'Ctx', lineno = lineno),
+                    Instr("CALL_METHOD",  0, lineno = lineno),
+                    Instr("STORE_FAST",  'ctx', lineno = lineno)
+    ])
     for nm in bc.argnames:
         add_to_code(newcode, 
                     [Instr("LOAD_FAST", nm, lineno = lineno)] + callcontext("set", 1, [nm], 0, lineno))
@@ -362,8 +201,9 @@ def _oblif(code):
                 add_to_code(newcode, [Instr("JUMP_ABSOLUTE", backjump_to, lineno=block[-1].lineno)])
             continue
             
-        (effect_nojump,effect_jump) = block_stack_effects(block)
-        
+        effect_nojump = sum([i.stack_effect(False) for i in block])
+        effect_jump = sum([i.stack_effect(True) for i in block])
+    
         if block.next_block is not None:
             bix2 = blocks.get_block_index(block.next_block)
             stack_size_nojump = stack_sizes[bix] + effect_nojump
