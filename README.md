@@ -1,5 +1,7 @@
 # oblif
 
+[![Documentation Status](https://readthedocs.org/projects/oblif/badge/?version=latest)](http://oblif.readthedocs.io/?badge=latest)
+
 Oblif is a library that lets you write data-oblivious code in a non-data-oblivious way. For example:
 
 ```python
