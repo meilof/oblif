@@ -181,12 +181,14 @@ def add_to_code(lst, instrs):
     global retcurdepth
     global retdepths
     
+    doprint = os.getenv("OBLIV_VERBOSE", "0")=="1"
+    
     lst.extend(instrs)
         
     for i in instrs:
         if isinstance(i, Instr):
             # instruction: retcurdepth is OK
-            print("          ", retcurdepth, i, end=' -> ')
+            if doprint: print("          ", retcurdepth, i, end=' -> ')
             if i.has_jump(): retdepths[id(i.arg)] = retcurdepth + i.stack_effect(True)
             if i.is_uncond_jump():
                 retcurdepth = None
@@ -199,8 +201,8 @@ def add_to_code(lst, instrs):
                 retcurdepth = retdepths[id(i)]
             elif id(i) in retdepths and retcurdepth != retdepths[id(i)]:
                 raise RuntimeError("inconsistent depths for label", i)
-            print("          ", retcurdepth, i, end=' -> ')
-        print(retcurdepth)
+            if doprint: print("          ", retcurdepth, i, end=' -> ')
+        if doprint: print(retcurdepth)
     
 """ Return code for calling a context function, stack can be 0, 1, or (n), args can be a list, ret can be 0, 1, or (n) """
 def callcontext(fn, stack, args, rets, lineno):
@@ -300,6 +302,11 @@ def patch_range(instrs, ix):
 #        print(i, instrs[i])
 
 def _oblif(code):
+    global retcurdepth
+    global retdepths
+    retcurdepth = 0
+    retdepths = {}
+    
     """ Turn given code into data-oblivious code """
     doprint = os.getenv("OBLIV_VERBOSE", "0")=="1"
     
@@ -327,7 +334,7 @@ def _oblif(code):
     for (bix,block) in enumerate(blocks):
         # invariant: stack is empty if we enter, context has stored stack
         #bix = blocks.get_block_index(block)
-        print("[" + str(stack_sizes[bix]) + "] Block #%s" % (bix))
+        if doprint: print("[" + str(stack_sizes[bix]) + "] Block #%s" % (bix))
         
         if (b:=block.get_jump()) is not None and \
            (bix2:=blocks.get_block_index(b))<bix and  \
@@ -383,7 +390,7 @@ def _oblif(code):
                 arg = repr(instr.arg)
             else:
                 arg = ''
-            print("    %s %s" % (instr.name, arg))
+            if doprint: print("    %s %s" % (instr.name, arg))
             
             if instr.name=="STORE_FAST" and instr.arg[-1]!="_":
                 add_to_code(newcode,callcontext("set", 1, [instr.arg], 0, instr.lineno))
@@ -441,10 +448,10 @@ def _oblif(code):
 
         if block.next_block is not None:
             #stack_sizes[blocks.get_block_index(block.next_block)] =
-            print("    => <block #%s>"
+            if doprint: print("    => <block #%s>"
                   % (blocks.get_block_index(block.next_block)))
             
-        print()
+        if doprint: print()
     
     add_to_code(newcode,
         [labels[len(blocks)]] + 

@@ -34,14 +34,14 @@ class Ctx:
         return self.vals[var]
 
     def set(self, val, var):
-        print_ctx("calling set var=", var, "val=", val, "with", self.vals)
+#        print_ctx("calling set var=", var, "val=", val, "with", self.vals)
         self.vals[var] = val
             
     def label(self, label, nstack):
-        print_ctx("entering label", label, "with context", self.vals)
+#        print_ctx("entering label", label, "with context", self.vals)
             
         if label in self.contexts and self.contexts[label] is not None:
-            print("executing code", self.contexts[label])
+#            print("executing code", self.contexts[label])
 #            print_ctx("executing code under guard", self.vals["__guard"])
             self.vals = self.contexts[label]
             del self.contexts[label]
@@ -52,7 +52,7 @@ class Ctx:
             else:
                 return True
         else:
-            print_ctx("no reason to execute code, skipping")
+#            print_ctx("no reason to execute code, skipping")
             return False
     
     def pjif(self, stack, labelnext, labeljump):
@@ -65,7 +65,7 @@ class Ctx:
         self.vals = None
             
     def pjit(self, stack, labelnext, labeljump):
-        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])
+#        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
         guari = not guard if isinstance(guard,bool) else 1-guard
@@ -84,15 +84,16 @@ class Ctx:
         self.vals = None
 
     def ret(self, arg, label): # same as jmp
-        print("calling ret", arg, label)
+#        print("calling ret", arg, label)
         guard = self.vals["__guard"]
         self.vals.clear()
         self.vals["__guard"] = guard
         self.stack((arg,))
         self.contexts[label] = apply_to_label(self.contexts.get(label), self.vals, True)
+        self.vals = None
         
     def retlabel(self, label):
-        print("retlabel", label, self.contexts)
+#        print("retlabel", label, self.contexts)
         return self.contexts[label]["__stack0"]
         
     def range(self, *args):

@@ -67,6 +67,7 @@ def apply_to_label(orig, vals, cond):
             ret["__guard"] &= cond
             return ret
     else:
+        print("doing ifthenelse", "orig", orig["__guard"], "vals", vals["__guard"], "cond", cond)
         ret = values()
         ifguard = vals["__guard"] & cond
         for nm in orig:
@@ -74,6 +75,8 @@ def apply_to_label(orig, vals, cond):
                 if (vif:=vals.get(nm)) is (velse:=orig.get(nm)):
                     ret[nm] = vif
                 else:
+                    if ifguard is True or ifguard is False or isinstance(ifguard,int):
+                        raise RuntimeError("trivial guard")
                     ret[nm] = cachedifthenelse(ifguard, vif, velse)
         ret["__guard"] |= cond
         return ret
