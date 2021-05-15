@@ -55,41 +55,28 @@ class values:
     def __repr__(self):
         return repr(self.dic)
     
-def apply_to_label(contexts, vals, cond, label):
-#    print("applying to label", label, cond)
+def apply_to_label(orig, vals, cond):
+    print("applying to label", orig, vals, cond)
     if cond is False:
-        return vals
-    elif not label in contexts:
+        return orig
+    elif orig is None:
         if cond is True:
-            contexts[label] = vals
-            return None
-        else:
-            contexts[label] = vals.copy()
-            contexts[label]["__guard"] &= cond
-            vals["__guard"] &= (1-cond)
             return vals
+        else:
+            ret = vals.copy()
+            ret["__guard"] &= cond
+            return ret
     else:
-        have_else = not cond is True
-        guardif = vals["__guard"] & cond
-        cif = values()
-        corig = contexts[label]
-        if have_else: celse = values()
-
-#        print("doing ifthenelse", corig.dic.keys(), vals.dic.keys())
-        for nm in corig:
+        ret = values()
+        ifguard = vals["__guard"] & cond
+        for nm in orig:
             if nm in vals:
-#                print("both:", nm)
-                if (vif:=vals.get(nm)) is (velse:=corig.get(nm)):
-                    cif[nm] = vif
-                    if have_else: celse[nm] = vif
+                if (vif:=vals.get(nm)) is (velse:=orig.get(nm)):
+                    ret[nm] = vif
                 else:
-                    cif[nm] = cachedifthenelse(guardif, vif, velse)
-                    if have_else: celse[nm] = vif
-
-        cif["__guard"] = corig["__guard"]|guardif
-        if have_else: celse["__guard"] = vals["__guard"] & (1-cond)
-        contexts[label] = cif
-        return celse if have_else else None
+                    ret[nm] = cachedifthenelse(ifguard, vif, velse)
+        ret["__guard"] |= cond
+        return ret
 
 def values_new():
     return values()

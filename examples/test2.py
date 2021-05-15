@@ -15,9 +15,17 @@ def test(x):
 #        ret=i
 #    print("after", ret)        
 
-    for i in range(min(x,10)):
+    if x==5:
+        ret=1
+    else:
+        ret=2
+        
+    print("returning", ret)
+    return ret
+
+#    for i in range(min(x,10)):
 #        print(i)
-        pass
+#        pass
 #        if i==x-1: break
 #        ret=i
 #        for j in range(min(i,10)):

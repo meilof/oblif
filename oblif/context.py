@@ -25,64 +25,75 @@ class Ctx:
     def __init__(self):
         self.vals = values_new()
         self.vals["__guard"] = 1
+#        vals0 = values_new()
+#        vals0["__guard"] = 1
         self.contexts = {}
 
     def get(self, var):
 #        print_ctx("calling get on", var, "with", self.vals)
         return self.vals[var]
 
-    def set(self, var, val):
-#        print_ctx("calling set", var, val, "with", self.vals)
+    def set(self, val, var):
+        print_ctx("calling set var=", var, "val=", val, "with", self.vals)
         self.vals[var] = val
             
-    def label(self, label):
-#        print_ctx("entering label", label, "with context", self.vals)
-        if self.vals: self.vals = apply_to_label(self.contexts, self.vals, True, label)
+    def label(self, label, nstack):
+        print_ctx("entering label", label, "with context", self.vals)
             
-        if label in self.contexts:
+        if label in self.contexts and self.contexts[label] is not None:
+            print("executing code", self.contexts[label])
 #            print_ctx("executing code under guard", self.vals["__guard"])
             self.vals = self.contexts[label]
             del self.contexts[label]
-            return True
+            if nstack:
+                ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
+                for i in range(nstack): del self.vals["__stack"+str(i)]
+                return ret
+            else:
+                return True
         else:
-#            print_ctx("no reason to execute code, skipping")
+            print_ctx("no reason to execute code, skipping")
             return False
-        
-    def pjif(self, stack, label):
-#        print_ctx("calling pjif, stack=", stack, "label=", label)
+    
+    def pjif(self, stack, labelnext, labeljump):
+        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
-#        print("guard is", guard)
-        self.vals = apply_to_label(self.contexts, self.vals, not guard if isinstance(guard,bool) else 1-guard, label)
-#        print("self.vals now", self.vals)
+        guari = not guard if isinstance(guard,bool) else 1-guard
+        self.contexts[labelnext] = apply_to_label(self.contexts.get(labelnext), self.vals, guard)
+        self.contexts[labeljump] = apply_to_label(self.contexts.get(labeljump), self.vals, guari)
+        self.vals = None
             
-    def pjit(self, stack, label):
-#        print_ctx("calling pjit, stack=", self.vals.dic["__stack"], "guard=", guard, "label=", label)
+    def pjit(self, stack, labelnext, labeljump):
+        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
-        self.vals = apply_to_label(self.contexts, self.vals, guard, label)
+        guari = not guard if isinstance(guard,bool) else 1-guard
+        self.contexts[labelnext] = apply_to_label(self.contexts.get(labelnext), self.vals, guari)
+        self.contexts[labeljump] = apply_to_label(self.contexts.get(labeljump), self.vals, guard)
+        self.vals = None
         
     def stack(self, stack):
 #        print("stacking", stack)
         for i in range(len(stack)): self.vals["__stack"+str(i)] = stack[i]
         
-    def unstack(self, nstack):
-#        print("calling unstack", nstack, self.vals)
-        ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
-        for i in range(nstack): del self.vals["__stack"+str(i)]
-        return ret
-            
     def jmp(self, stack, label):
-#        print("jmp", stack, label)
+        print("jmp", stack, label)
         self.stack(stack)
-        self.vals = apply_to_label(self.contexts, self.vals, True, label)
+        self.contexts[label] = apply_to_label(self.contexts.get(label), self.vals, True)
+        self.vals = None
 
     def ret(self, arg, label): # same as jmp
+        print("calling ret", arg, label)
         guard = self.vals["__guard"]
         self.vals.clear()
         self.vals["__guard"] = guard
         self.stack((arg,))
-        self.vals = apply_to_label(self.contexts, self.vals, True, label)
+        self.contexts[label] = apply_to_label(self.contexts.get(label), self.vals, True)
+        
+    def retlabel(self, label):
+        print("retlabel", label, self.contexts)
+        return self.contexts[label]["__stack0"]
         
     def range(self, *args):
         return orange(*args)

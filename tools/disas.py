@@ -43,10 +43,10 @@ if __name__ == '__main__':
     
 
     for block in blocks:
-        print("Block #%s" % (1 + blocks.get_block_index(block)))
+        print("Block #%s" % (blocks.get_block_index(block)))
         for instr in block:
             if isinstance(instr.arg, BasicBlock):
-                arg = "<block #%s>" % (1 + blocks.get_block_index(instr.arg))
+                arg = "<block #%s>" % (blocks.get_block_index(instr.arg))
             elif instr.arg is not UNSET:
                 arg = repr(instr.arg)
             else:
@@ -55,6 +55,6 @@ if __name__ == '__main__':
 
         if block.next_block is not None:
             print("    => <block #%s>"
-                  % (1 + blocks.get_block_index(block.next_block)))
+                  % (blocks.get_block_index(block.next_block)))
 
         print()
