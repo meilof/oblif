@@ -154,7 +154,7 @@ To still be able to perform operations on a mutable object, it needs to be copie
 (There is some experimental work to automatically copy mutable objects before they are executed in branches. This may be implemented in a future version of oblif.)
 
 Access variables that may be undefined
---------------------------------------
+......................................
 
 Values set in a branch can only be accessed if they also have a well-defined value in all other branches. For example::
 
