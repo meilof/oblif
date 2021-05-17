@@ -13,6 +13,8 @@ Welcome to oblif's documentation!
    :caption: Contents:
    
    gettingstarted
+   installing
+   performance
 
 
 
