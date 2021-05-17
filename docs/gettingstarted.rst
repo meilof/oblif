@@ -41,6 +41,8 @@ Oblif supports not only ``if`` statements, but also ``for`` and ``while`` loops 
     type=mpc.SecInt()
     print("test(5) is", mpc.run(mpc.output(fac(type(5)))))
     mpc.run(mpc.shutdown())
+    
+Obliv requires a recent version of Python (tested with Python 3.8 and 3.9) and uses the ``bytecode`` package (``pip install bytecode``).
 
 Things you can do
 -----------------

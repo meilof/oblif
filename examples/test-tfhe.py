@@ -11,7 +11,7 @@ class enc:
     def __bool__(self):
         raise TypeError("cannot do bool()")
         
-    def ifelse(self, ifval, elseval):
+    def if_else(self, ifval, elseval):
         if ifval is elseval: return ifval
         ret = ifval - (self-1)*(elseval-ifval)
         return ret
@@ -34,7 +34,7 @@ class enc:
         if isinstance(other, enc):
             return enc(other.ct.rsub(self.ct))
         else:
-            return self.__mul__(7).__add__(other) # other+(-1)*self
+            return self.__mul__((1-other)%8).__add__(other) # other+(-1)*self
 
     def dec(self, key):
         return self.ct.decrypt(key)
@@ -44,6 +44,12 @@ class enc:
             return self if other else 0
         else:
             return self.__mul__(other)
+        
+    def __or__(self, other):
+        if isinstance(other,int):
+            return self if not other else 1
+        else:
+            return self+other-self*other
         
     __rand__ = __and__
     
