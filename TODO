@@ -1,3 +1,12 @@
+* Can we try to avoid ifthenelse for guard and 1-guard?
+* Paar voorbeelden kijken of het aantal if_then_elses ongeveer klopt? Test case voor maken? Monkey-patchen?  https://stackoverflow.com/questions/22356914/using-python-mock-to-count-number-of-method-calls https://www.google.com/search?q=python+unittest+count+number+of+invocations&rlz=1C1GCEU_nlNL821NL821&oq=python+unittest+count+number+of+invocations&aqs=chrome..69i57.8112j1j7&sourceid=chrome&ie=UTF-8
+* Test different python versions
+* Add all examples from the docs to test cases
+* Switchen naar markdown? API docs kijken?
+* Ranges voorwaarde hoeft niet cumulatief!
+* Document: cannot access conditionally set vars (or change this...), foutmelding var niet gevonden verbeteren
+* Ranges: tuple doen voor patchen? Oblivious stride?
+
 Longer-term
 * code coverage van tests bekijken
 * kijken of bij return de context triviaal is

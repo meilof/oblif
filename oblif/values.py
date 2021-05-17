@@ -26,7 +26,9 @@ class values:
         self.dic = {}
         
     def __getitem__(self, var):
-        if isinstance(self.dic[var], cachedifthenelse): self.dic[var]=self.dic[var]()
+        if isinstance(self.dic[var], cachedifthenelse): 
+#            if self.dic[var].guard is not None: print("* ifthenelse", var, self.dic[var].guard, "?", self.dic[var].ifval, ":", self.dic[var].elseval)
+            self.dic[var]=self.dic[var]()
         return self.dic[var]
     
     def get(self, var):
