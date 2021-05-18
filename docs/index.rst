@@ -14,6 +14,7 @@ Welcome to oblif's documentation!
    
    gettingstarted
    installing
+   frameworks
    performance
 
 
