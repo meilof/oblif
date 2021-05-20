@@ -58,7 +58,7 @@ class values:
     def __repr__(self):
         return repr(self.dic)
     
-def apply_to_label(orig, vals, cond):
+def apply_to_label(vals, orig, cond):
 #    print("applying to label", orig, vals, cond)
 #    print("applying to label")
     if cond is False:
