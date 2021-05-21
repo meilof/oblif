@@ -1,7 +1,7 @@
 from inspect import getframeinfo, stack
 
 from .iterators import orange, ObliviousIterator, IteratorWrapper
-from .values import apply_to_label, values_new
+from .values import apply_to_label, apply_to_labels, values_new
     
 def print_ctx(*args):
     myfilename =  getframeinfo(stack()[0][0]).filename
@@ -59,9 +59,10 @@ class Ctx:
 #        if labeljump in self.contexts and self.contexts[labeljump] is not None: print("prev jump guard ", self.contexts[labeljump]["__guard"])
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
-        guari = not guard if isinstance(guard,bool) else 1-guard
-        self.contexts[labelnext] = apply_to_label(self.vals, self.contexts.get(labelnext), guard)
-        self.contexts[labeljump] = apply_to_label(self.vals, self.contexts.get(labeljump), guari)
+#        guari = not guard if isinstance(guard,bool) else 1-guard
+        [self.contexts[labelnext], self.contexts[labeljump]] = \
+            apply_to_labels(self.vals, self.contexts.get(labelnext), self.contexts.get(labeljump), guard)
+#         = apply_to_label(self.vals, , guari)
 #        if self.contexts[labelnext] is not None: print("next guard ", self.contexts[labelnext]["__guard"])
 #        if self.contexts[labeljump] is not None: print("jump guard ", self.contexts[labeljump]["__guard"])
         self.vals = None
@@ -70,9 +71,11 @@ class Ctx:
 #        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])
         self.stack(stack[:-1])
         guard = trytobool(stack[-1])
-        guari = not guard if isinstance(guard,bool) else 1-guard
-        self.contexts[labelnext] = apply_to_label(self.vals, self.contexts.get(labelnext), guari)
-        self.contexts[labeljump] = apply_to_label(self.vals, self.contexts.get(labeljump), guard)
+        [self.contexts[labeljump], self.contexts[labelnext]] = \
+            apply_to_labels(self.vals, self.contexts.get(labeljump), self.contexts.get(labelnext), guard)
+#        guari = not guard if isinstance(guard,bool) else 1-guard
+#        self.contexts[labelnext] = apply_to_label(self.vals, self.contexts.get(labelnext), guari)
+#        self.contexts[labeljump] = apply_to_label(self.vals, self.contexts.get(labeljump), guard)
         self.vals = None
         
     def stack(self, stack):
@@ -82,7 +85,7 @@ class Ctx:
     def jmp(self, stack, label):
 #        print("jmp", label, "curguard", self.vals["__guard"])
         self.stack(stack)
-        self.contexts[label] = apply_to_label(self.vals, self.contexts.get(label), True)
+        self.contexts[label] = apply_to_label(self.vals, self.contexts.get(label))
         self.vals = None
 
     def ret(self, arg, label): # same as jmp
@@ -91,7 +94,7 @@ class Ctx:
         self.vals.clear()
         self.vals["__guard"] = guard
         self.stack((arg,))
-        self.contexts[label] = apply_to_label(self.vals, self.contexts.get(label), True)
+        self.contexts[label] = apply_to_label(self.vals, self.contexts.get(label))
         self.vals = None
         
     def range(self, *args):

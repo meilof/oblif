@@ -58,36 +58,43 @@ class values:
     def __repr__(self):
         return repr(self.dic)
     
-def apply_to_label(vals, orig, cond):
-#    print("applying to label", orig, vals, cond)
-#    print("applying to label")
-    if cond is False:
-#        print("returning orig")
-        return orig
-    elif orig is None:
-        if cond is True:
-#            print("returning vals")
-            return vals
-        else:
-#            print("copying vals")
-            ret = vals.copy()
-            ret["__guard"] &= cond
-            return ret
-    else:
-#        print("doing ifthenselse", )
-        #print("doing ifthenelse", "orig", orig["__guard"], "vals", vals["__guard"], "cond", cond)
-        ret = values()
-        ifguard = vals["__guard"] & cond
-        for nm in orig:
-            if nm in vals:
-                if (vif:=vals.get(nm)) is (velse:=orig.get(nm)):
-                    ret[nm] = vif
-                else:
-                    if ifguard is True or ifguard is False or isinstance(ifguard,int):
-                        raise RuntimeError("trivial guard")
-                    ret[nm] = cachedifthenelse(ifguard, vif, velse)
-        ret["__guard"] |= ifguard
-        return ret
+def apply_to_label(vals, orig):
+    if orig is None: return vals
+    
+    ifguard = vals["__guard"]
+    ret = values()
+    for nm in orig:
+        if nm in vals:
+            if (vif:=vals.get(nm)) is (velse:=orig.get(nm)):
+                ret[nm] = vif
+            else:
+                if ifguard is True or ifguard is False or isinstance(ifguard,int):
+                    raise RuntimeError("trivial guard")
+                ret[nm] = cachedifthenelse(ifguard, vif, velse)
+
+    return ret  
+
+def apply_to_labels(vals, orig1, orig2, cond):
+    if cond is True:
+        return [apply_to_label(vals, orig1), orig2]
+    elif cond is False:
+        return [orig1, apply_to_label(vals, orig2)]        
+        
+    guard = vals["__guard"]
+    guard1 = guard&cond
+    guard2 = guard&(1-cond)
+    
+    vals["__guard"] = guard1
+    ret1 = apply_to_label(vals, orig1)
+    
+    if orig1 is None and orig2 is None: vals = vals.copy()
+        
+    vals["__guard"] = guard2
+    ret2 = apply_to_label(vals, orig2)
+    
+    ret1["__guard"] = guard1  # because may be overwritten to guard2 if we do not copy vals
+    
+    return [ret1,ret2]
 
 def values_new():
     return values()
