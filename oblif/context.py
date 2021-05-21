@@ -62,9 +62,6 @@ class Ctx:
 #        guari = not guard if isinstance(guard,bool) else 1-guard
         [self.contexts[labelnext], self.contexts[labeljump]] = \
             apply_to_labels(self.vals, self.contexts.get(labelnext), self.contexts.get(labeljump), guard)
-#         = apply_to_label(self.vals, , guari)
-#        if self.contexts[labelnext] is not None: print("next guard ", self.contexts[labelnext]["__guard"])
-#        if self.contexts[labeljump] is not None: print("jump guard ", self.contexts[labeljump]["__guard"])
         self.vals = None
             
     def pjit(self, stack, labelnext, labeljump):
@@ -73,9 +70,6 @@ class Ctx:
         guard = trytobool(stack[-1])
         [self.contexts[labeljump], self.contexts[labelnext]] = \
             apply_to_labels(self.vals, self.contexts.get(labeljump), self.contexts.get(labelnext), guard)
-#        guari = not guard if isinstance(guard,bool) else 1-guard
-#        self.contexts[labelnext] = apply_to_label(self.vals, self.contexts.get(labelnext), guari)
-#        self.contexts[labeljump] = apply_to_label(self.vals, self.contexts.get(labeljump), guard)
         self.vals = None
         
     def stack(self, stack):

@@ -1,11 +1,14 @@
 from copy import deepcopy
 
 class cachedifthenelse:
-    def __init__(self, guard, ifval, elseval):
+    def __init__(self, guard, ift, elset, val):
+        # can be in one of two states:
+        #   - guard is not None, ift and elset are not both None, val is None
+        #   - guard is None, ift and elset are None, val is a value intended to be stored (may be None)
         self.guard = guard
-        self.ifval = ifval
-        self.elseval = elseval
-        self.val = None
+        self.ift = ift
+        self.elset = elset
+        self.val = val
         
     def get(self):
         return self.val if self.guard is None else self
