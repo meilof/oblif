@@ -7,9 +7,19 @@ from oblif.iterators import orange
 
 @oblif
 def test(x):
-    if x==3:
-      ret = 1
-    return ret
+    # moet 1 uitkomen, komt 3 uit
+#    ret = 0
+#    if x==3:
+#        ret = 1
+#    print("now after")
+#    return ret
+    ret=1
+    for i in range(min(x,2)):
+#        print("doing")
+        k=(1 if x==4 else 2 if x==5 else 3)
+        print("k is", k)
+#        if k==1: ret=0
+    return k
 
 
 #print("test(2) is", test(OblivVal(6)))

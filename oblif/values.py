@@ -2,18 +2,23 @@ from copy import deepcopy
 
 class cachedifthenelse:
     def __init__(self, guard, ift, elset, val):
-        self.guard = guard      # guard at current branch point (needs to be set if does not have a value)
+        # TODO: should we have a flag whether the value is set or not? currently we cannot cache a None...
+        self.guard = guard      # guard at current branch point (if is None, then self.value assumed to be the correct value)
         self.ift = ift          # tree for "true" case (either ift or else needs to be not None if not hasval)
         self.elset = elset      # tree for "false" case
         self.val = val          # value that is cached/computed before, or None if no value
+    
+    def __repr__(self):
+        return "[" + repr(self.val) + " " + repr(self.guard) + " ? " + repr(self.ift) + " : " + repr(self.elset) + "]"
         
     def __call__(self):
-        if self.val is not None: return self.val
+        if self.guard is None or self.val is not None: return self.val
     
-        if ift and not elset: return ift()
-        if not ift: return elset()
+        if self.ift and not self.elset: return ift()
+        if not self.ift: return elset()
         
         self.val = self.guard.if_else(self.ift(), self.elset())
+#        print("calling if_else", self.guard, self.ift(), self.elset(), self.val)
         return self.val
     
     def add_cond(self, guard, is_if):
@@ -44,7 +49,9 @@ class cachedifthenelse:
         return val1 if (val1:=self.ift.sureval()) is self.elset.sureval() else None
         
 def ifthenelse_merge(vif, velse):
-    if vif is not None and velse is None:
+    if vif is None and velse is None:
+        return (None,None)
+    elif vif is not None and velse is None:
         return (vif, vif.sureval())
     elif velse is not None and vif is None:
         return (velse, velse.sureval())
@@ -57,10 +64,23 @@ def ifthenelse_merge(vif, velse):
     (lmerge,lsval) = ifthenelse_merge(vif.ift, velse.ift)
     (rmerge,rsval) = ifthenelse_merge(vif.elset, velse.elset)
     
-    vif.ift = lmerge
-    vif.elset = rmerge
-    vif.val = lmerge.val if lmerge.val is rmerge.val else None
-    
+    if lmerge is None and rmerge is None:
+        vif.val = None
+    elif lmerge is None:
+        vif.val = rmerge.val
+    elif rmerge is None:
+        vif.val = lmerge.val
+    else:
+        vif.val = lmerge.val if lmerge.val is rmerge.val else None
+
+    if lsval is rsval:
+        vif.guard = None
+        vif.ift = None
+        vif.elset = None
+    else:
+        vif.ift = lmerge
+        vif.elset = rmerge
+        
     return (vif, lsval if lsval is rsval else None)
     
     
@@ -75,11 +95,12 @@ class values:
     def __getitem__(self, var):
         if not var in self.dic: raise NameError("name '" + var + "' is not always set")
         if isinstance(self.dic[var], cachedifthenelse): 
+#            print("getitem", var)
             self.dic[var]=self.dic[var]()
         return self.dic[var]     
     
     def __setitem__(self, var, val):
-        if val is None: raise RuntimeError("cannot set to None")
+#        if val is None: raise RuntimeError("cannot set to None")
         self.dic[var] = val
         
     def __delitem__(self, var):
@@ -101,16 +122,36 @@ class values:
     
 def apply_to_label(vals, orig):
     if orig is None: return vals
-    
+
+    if "__stack0" in vals and "__stack1" in vals and "k" in vals:
+        print("doing apply to label")
+#        print("vals", vals.dic["k"])
+#        print("orig", orig.dic["k"])
+#        print("")
+
     ifguard = vals.dic["__guard"]
     elseguard = orig.dic["__guard"]
+    print("ifguard", ifguard)
+    print("elseguard", elseguard)
     ret = values()
     for nm in orig:
         if nm in vals:
+            if nm=="__guard": continue
+#            print("merging", nm, vals.dic[nm], orig.dic[nm])
+            if nm=="__stack1": print("__stack1 orig", vals.dic[nm], "ifg", ifguard)
             if not isinstance(vif:=vals.dic[nm], cachedifthenelse): vif = ifguard.apply_to_val(vif)
             if not isinstance(velse:=orig.dic[nm], cachedifthenelse): velse = elseguard.apply_to_val(velse)
+#            print("if", ifguard, vif)
+#            print("else", elseguard, velse)
+            if nm=="__stack1": print("vif", vif, "velse", velse)
             ret[nm] = ifthenelse_merge(vif, velse)[0]
+            if nm=="__stack1":
+                print("__stack1", vif, "/", velse, "/", ret.dic[nm])
 
+    # do this one last since we need its original value for apply_to_val
+#    print("merging guards", vals.dic["__guard"], orig.dic["__guard"])
+    ret["__guard"] = ifthenelse_merge(vals.dic["__guard"], orig.dic["__guard"])[0]
+#    print("result", ret.dic["__guard"])
     return ret  
 
 def apply_to_labels(vals, orig1, orig2, cond):

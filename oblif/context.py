@@ -40,10 +40,14 @@ class Ctx:
         if label in self.contexts and self.contexts[label] is not None:
 #            print("executing code", self.contexts[label])
             self.vals = self.contexts[label]
-#            print_ctx("entering", label, "under guard", self.vals["__guard"])
+#            print_ctx("entering", label, "under guard", self.vals.dic["__guard"], nstack)
+#            if label==7:
+#                print("s0", self.vals.dic["__stack0"])
+#                print("s1", self.vals.dic["__stack1"])
             del self.contexts[label]
             if nstack:
                 ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
+                print("from stack", ret)
                 for i in range(nstack): del self.vals["__stack"+str(i)]
                 return ret
             else:
@@ -72,7 +76,7 @@ class Ctx:
         self.vals = None
         
     def stack(self, stack):
-#        print("stacking", stack)
+        print("stacking", stack)
         for i in range(len(stack)): self.vals["__stack"+str(i)] = stack[i]
         
     def jmp(self, stack, label):
@@ -83,9 +87,9 @@ class Ctx:
 
     def ret(self, arg, label): # same as jmp
 #        print("calling ret", arg, label)
-        guard = self.vals["__guard"]
-        self.vals.clear()
-        self.vals["__guard"] = guard
+#        guard = self.vals["__guard"]
+#        self.vals.clear()
+#        self.vals["__guard"] = guard
         self.stack((arg,))
         self.contexts[label] = apply_to_label(self.vals, self.contexts.get(label))
         self.vals = None
