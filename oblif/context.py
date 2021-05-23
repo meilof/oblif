@@ -24,7 +24,6 @@ def boolneg(val):
 class Ctx:
     def __init__(self):
         self.vals = values_new()
-        self.vals["__guard"] = 1
 #        vals0 = values_new()
 #        vals0["__guard"] = 1
         self.contexts = {}

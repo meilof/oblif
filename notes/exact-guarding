@@ -1,0 +1,27 @@
+* voor het moment, None niet toestaan, DELETE_FAST wel implementeren
+
+Ontwerp 1
+
+* houd voor iedere variabele een boomstructuur met zijn waarde bij
+* subtree met cond kan gedeeld worden?
+   => als de waarde niet gewijzigd is, dan niet, want dan kunnen het echt
+      verschillende waardes zijn
+   => als de waarde wel gewijzigd is, vervang dan door een kopie van de guard-
+      boom, waarbij de laatste node gedeeld is (voor caching)
+      (NB dat kan voor __guard zelf niet voorkomen)
+      hmm dat kan niet, we moeten twee versies maken, die zouden dan allebei
+      gedeeld moeten worden op dezelfde manier...
+        => deepcopy kan dat!
+   
+* tree.get() -> huidige waarde, kan gecached worden
+* merge(tree1, tree2) -> merge trees, check at each stage whether the tree
+  can be simplified => return [tree, val] => nieuwe tree, val als dat zeker
+  is, anders None
+  
+Ontwerp 2
+
+ * houd een expliciete representatie van join/merge points bij
+ 
+Ontwerp
+
+ * per guard
