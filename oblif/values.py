@@ -14,8 +14,8 @@ class cachedifthenelse:
     def __call__(self):
         if self.guard is None or self.val is not None: return self.val
     
-        if self.ift and not self.elset: return ift()
-        if not self.ift: return elset()
+        if self.ift and not self.elset: return self.ift()
+        if not self.ift: return self.elset()
         
         self.val = self.guard.if_else(self.ift(), self.elset())
 #        print("calling if_else", self.guard, self.ift(), self.elset(), self.val)
@@ -73,7 +73,7 @@ def ifthenelse_merge(vif, velse):
     else:
         vif.val = lmerge.val if lmerge.val is rmerge.val else None
 
-    if lsval is rsval:
+    if (lsval is not None) and (lsval is rsval):
         vif.guard = None
         vif.ift = None
         vif.elset = None
@@ -123,30 +123,30 @@ class values:
 def apply_to_label(vals, orig):
     if orig is None: return vals
 
-    if "__stack0" in vals and "__stack1" in vals and "k" in vals:
-        print("doing apply to label")
+#    if "__stack0" in vals and "__stack1" in vals and "k" in vals:
+#        print("doing apply to label")
 #        print("vals", vals.dic["k"])
 #        print("orig", orig.dic["k"])
 #        print("")
 
     ifguard = vals.dic["__guard"]
     elseguard = orig.dic["__guard"]
-    print("ifguard", ifguard)
-    print("elseguard", elseguard)
+#    print("ifguard", ifguard)
+#    print("elseguard", elseguard)
     ret = values()
     for nm in orig:
         if nm in vals:
             if nm=="__guard": continue
 #            print("merging", nm, vals.dic[nm], orig.dic[nm])
-            if nm=="__stack1": print("__stack1 orig", vals.dic[nm], "ifg", ifguard)
+#            if nm=="__stack1": print("__stack1 orig", vals.dic[nm], "ifg", ifguard)
             if not isinstance(vif:=vals.dic[nm], cachedifthenelse): vif = ifguard.apply_to_val(vif)
             if not isinstance(velse:=orig.dic[nm], cachedifthenelse): velse = elseguard.apply_to_val(velse)
 #            print("if", ifguard, vif)
 #            print("else", elseguard, velse)
-            if nm=="__stack1": print("vif", vif, "velse", velse)
+#            if nm=="__stack1": print("vif", vif, "velse", velse)
             ret[nm] = ifthenelse_merge(vif, velse)[0]
-            if nm=="__stack1":
-                print("__stack1", vif, "/", velse, "/", ret.dic[nm])
+#            if nm=="__stack1":
+#                print("__stack1", vif, "/", velse, "/", ret.dic[nm])
 
     # do this one last since we need its original value for apply_to_val
 #    print("merging guards", vals.dic["__guard"], orig.dic["__guard"])

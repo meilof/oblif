@@ -47,7 +47,7 @@ class Ctx:
             del self.contexts[label]
             if nstack:
                 ret = tuple([self.vals["__stack"+str(i)] for i in range(nstack-1,-1,-1)])
-                print("from stack", ret)
+#                print("from stack", ret)
                 for i in range(nstack): del self.vals["__stack"+str(i)]
                 return ret
             else:
@@ -76,7 +76,7 @@ class Ctx:
         self.vals = None
         
     def stack(self, stack):
-        print("stacking", stack)
+#        print("stacking", stack)
         for i in range(len(stack)): self.vals["__stack"+str(i)] = stack[i]
         
     def jmp(self, stack, label):
