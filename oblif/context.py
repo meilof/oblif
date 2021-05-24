@@ -90,7 +90,7 @@ class Ctx:
 
     def ret(self, arg, label): # same as jmp
 #        print("calling ret", arg, label)
-        guard = self.vals["__guard"]
+        guard = self.vals.dic["__guard"]
         self.vals.clear()
         self.vals["__guard"] = guard
         self.stack((arg,))

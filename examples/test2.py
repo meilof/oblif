@@ -7,10 +7,10 @@ from oblif.iterators import orange
 
 @oblif
 def test(x):
-    if x==3:
-      ret = 1
-    return ret
-
+    ctr = 0
+    for i in range(min(x,5)):
+        ctr += 1
+    return ctr
 
 #print("test(2) is", test(OblivVal(6)))
 

@@ -28,6 +28,7 @@ class values:
     def __getitem__(self, var):
         if not var in self.dic: raise NameError("name '" + var + "' is not always set")
         if isinstance(self.dic[var], cachedifthenelse): 
+#            print("ifthenelsing", var)
 #            if self.dic[var].guard is not None: print("* ifthenelse", var, self.dic[var].guard, "?", self.dic[var].ifval, ":", self.dic[var].elseval)
             self.dic[var]=self.dic[var]()
         return self.dic[var]
