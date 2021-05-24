@@ -1,3 +1,4 @@
+import logging
 import unittest
 
 from oblif.iterators import orange
@@ -7,7 +8,17 @@ from oblif.types import OblivVal
 def _val(x):
     return x.val if isinstance(x, OblivVal) else x
 
+def call_counter(func):
+    def helper(*args, **kwargs):
+        helper.calls += 1
+        return func(*args, **kwargs)
+    helper.calls = 0
+    return helper
+
 class TestOblif(unittest.TestCase):   
+    
+    def test_asetup(self):
+        OblivVal.if_else = call_counter(OblivVal.if_else)
     
     def dotest(self, fn, *args):
         self.assertEqual(fn(*args),
@@ -175,6 +186,14 @@ class TestOblif(unittest.TestCase):
         self.dotest(fn, 9)
         self.dotest(fn, 10)
         self.dotest(fn, 111)
+        
+    def test_z_print(self):
+        logging.basicConfig()
+        #log = logging.getLogger("LOG")
+        #
+        print()
+        print("calls to if_else:", OblivVal.if_else.calls)
+
 
             
 if __name__ == '__main__':
