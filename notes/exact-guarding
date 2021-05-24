@@ -18,6 +18,11 @@ Ontwerp 1
   can be simplified => return [tree, val] => nieuwe tree, val als dat zeker
   is, anders None
   
+* probleem: als je een guard versimpelt, dan kun je waardes die daarop
+  gebaseerd zijn niet meer consistent mergen...
+  
+   => is dat nodig? wat als we geen guard-versimpeling doen???
+  
 Ontwerp 2
 
  * houd een expliciete representatie van join/merge points bij

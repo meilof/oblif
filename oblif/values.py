@@ -1,18 +1,26 @@
 from copy import deepcopy
 
+class itenone:
+    def __repr__(self): return "?"
+    
+ITE_NONE = itenone()
+#ITE_NONE.__repr__ = lambda self: "?"
+
 class cachedifthenelse:
     def __init__(self, guard, ift, elset, val):
-        # TODO: should we have a flag whether the value is set or not? currently we cannot cache a None...
-        self.guard = guard      # guard at current branch point (if is None, then self.value assumed to be the correct value)
+        self.guard = guard      # guard at current branch point (if None then self.val needs to be set)
         self.ift = ift          # tree for "true" case (either ift or else needs to be not None if not hasval)
         self.elset = elset      # tree for "false" case
-        self.val = val          # value that is cached/computed before, or None if no value
+        self.val = val          # value that is cached/computed before, or ITE_NONE
     
     def __repr__(self):
-        return "[" + repr(self.val) + " " + repr(self.guard) + " ? " + repr(self.ift) + " : " + repr(self.elset) + "]"
+        if self.guard is None:
+            return repr(self.val)
+        else:
+            return "[<" + repr(self.val) + "> " + repr(self.guard) + ("@" + str(id(self.guard))[-3:] if not self.guard is None else "") + " ? " + repr(self.ift) + " : " + repr(self.elset) + "]"
         
     def __call__(self):
-        if self.guard is None or self.val is not None: return self.val
+        if self.val is not ITE_NONE: return self.val
     
         if self.ift and not self.elset: return self.ift()
         if not self.ift: return self.elset()
@@ -49,39 +57,60 @@ class cachedifthenelse:
         return val1 if (val1:=self.ift.sureval()) is self.elset.sureval() else None
         
 def ifthenelse_merge(vif, velse):
+    print("ite merge", vif, "//", velse)
+    
     if vif is None and velse is None:
-        return (None,None)
+        return (None,ITE_NONE)
     elif vif is not None and velse is None:
-        return (vif, vif.sureval())
+        return (deepcopy(vif), vif.sureval())
+#        return (vif, vif.sureval())
     elif velse is not None and vif is None:
-        return (velse, velse.sureval())
+        return (deepcopy(velse), velse.sureval())
+#        return (velse, velse.sureval())
     elif vif.guard is None or velse.guard is None:
-        return (vif, vif.val) # if this happens, else must already have been merged in due to caching
-        #raise RuntimeError("same condition reached in two guards")
+#        return (vif, vif.sureval()) # if this happens, else must already have been merged in due to caching
+        return (deepcopy(vif), vif.sureval()) # if this happens, else must already have been merged in due to caching
     elif vif.guard is not velse.guard:
-        raise RuntimeError("inconsistent tree conditions")
+        # one has simplified, other has not?
+        raise RuntimeError("inconsistent tree conditions: " + str(vif.guard) + " vs " + str(velse.guard))
         
     (lmerge,lsval) = ifthenelse_merge(vif.ift, velse.ift)
     (rmerge,rsval) = ifthenelse_merge(vif.elset, velse.elset)
     
+    vret = cachedifthenelse(None,None,None,None)
+    
     if lmerge is None and rmerge is None:
-        vif.val = None
+        vret.val = ITE_NONE
+#        vif.val = ITE_NONE
     elif lmerge is None:
-        vif.val = rmerge.val
+        vret.val = rmerge.val
+#        vif.val = rmerge.val
     elif rmerge is None:
-        vif.val = lmerge.val
+        vret.val = lmerge.val
+#        vif.val = lmerge.val
     else:
-        vif.val = lmerge.val if lmerge.val is rmerge.val else None
+        vret.val = lmerge.val if lmerge.val is rmerge.val else ITE_NONE
+#        vif.val = lmerge.val if lmerge.val is rmerge.val else ITE_NONE
 
-    if (lsval is not None) and (lsval is rsval):
-        vif.guard = None
-        vif.ift = None
-        vif.elset = None
+    if (lsval is not ITE_NONE) and (lsval is rsval):
+        vret.guard = None
+        vret.ift = None
+        vret.elset = None
+        vret.val = lsval
+        return (vret, lsval)
+#        vif.guard = None
+#        vif.ift = None
+#        vif.elset = None
+#        vif.val = lsval
+#        return (vif, lsval)
     else:
-        vif.ift = lmerge
-        vif.elset = rmerge
-        
-    return (vif, lsval if lsval is rsval else None)
+        vret.guard = vif.guard
+        vret.ift = lmerge
+        vret.elset = rmerge
+        return (vret, ITE_NONE)
+#        vif.ift = lmerge
+#        vif.elset = rmerge
+#        return (vif, ITE_NONE)
     
     
     # return [tree, sureval]
@@ -144,13 +173,21 @@ def apply_to_label(vals, orig):
 #            print("if", ifguard, vif)
 #            print("else", elseguard, velse)
 #            if nm=="__stack1": print("vif", vif, "velse", velse)
+            print("** calling for", nm)
+            print("vif", vif)
+            print("velse", velse)
             ret[nm] = ifthenelse_merge(vif, velse)[0]
+            print("ret", ret.dic[nm])
 #            if nm=="__stack1":
 #                print("__stack1", vif, "/", velse, "/", ret.dic[nm])
 
     # do this one last since we need its original value for apply_to_val
 #    print("merging guards", vals.dic["__guard"], orig.dic["__guard"])
+    print("** calling for guard")
+    print("vif guard", vals.dic["__guard"])
+    print("velse guard", orig.dic["__guard"])
     ret["__guard"] = ifthenelse_merge(vals.dic["__guard"], orig.dic["__guard"])[0]
+    print("ret", ret.dic["__guard"])
 #    print("result", ret.dic["__guard"])
     return ret  
 

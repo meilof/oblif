@@ -13,13 +13,19 @@ def test(x):
 #        ret = 1
 #    print("now after")
 #    return ret
-    ret=1
-    for i in range(min(x,2)):
-#        print("doing")
-        k=(1 if x==4 else 2 if x==5 else 3)
-        print("k is", k)
-#        if k==1: ret=0
-    return k
+    ret=0
+    #for i in range(2):
+    if x==1: ret=1
+        
+    # guard is back to one
+        
+    if x==2: ret=2
+    return ret
+
+#            ctr = 0
+#            for i in range(min(x,10)):
+#                ctr += 1
+#            return ctr
 
 
 #print("test(2) is", test(OblivVal(6)))
@@ -27,4 +33,4 @@ def test(x):
 #test = lambda x: x*x if x==6 else 0
 #test=oblif(test)
 
-print("test(2) is", test(OblivVal(4)))
+print("test(2) is", test(OblivVal(5)))
