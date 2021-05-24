@@ -33,4 +33,4 @@ def test(x):
 #test = lambda x: x*x if x==6 else 0
 #test=oblif(test)
 
-print("test(2) is", test(OblivVal(5)))
+print("test(2) is", test(OblivVal(2)))

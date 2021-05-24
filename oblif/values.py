@@ -2,6 +2,7 @@ from copy import deepcopy
 
 class itenone:
     def __repr__(self): return "?"
+    def __deepcopy__(self, memo): return self
     
 ITE_NONE = itenone()
 #ITE_NONE.__repr__ = lambda self: "?"
@@ -71,8 +72,26 @@ def ifthenelse_merge(vif, velse):
 #        return (vif, vif.sureval()) # if this happens, else must already have been merged in due to caching
         return (deepcopy(vif), vif.sureval()) # if this happens, else must already have been merged in due to caching
     elif vif.guard is not velse.guard:
-        # one has simplified, other has not?
-        raise RuntimeError("inconsistent tree conditions: " + str(vif.guard) + " vs " + str(velse.guard))
+        if vif.ift is None and vif.elset is not None and velse.ift is not None and velse.elset is not None:
+            vif.ift = velse
+            vif.val = ITE_NONE
+            return (deepcopy(vif), vif.sureval())
+        elif vif.ift is not None and vif.elset is None and velse.ift is not None and velse.elset is not None:
+            vif.elset = velse
+            vif.val = ITE_NONE
+            return (deepcopy(vif), vif.sureval())
+        elif vif.ift is not None and vif.elset is not None and velse.ift is None and velse.elset is not None:
+            # TODO: in this case, should 
+            velse.ift = vif
+            velse.val = ITE_NONE
+            return (deepcopy(velse), velse.sureval())
+        elif vif.ift is not None and vif.elset is not None and velse.ift is not None and velse.elset is None:
+            velse.elset = vif
+            velse.val = ITE_NONE
+            return (deepcopy(velse), velse.sureval())
+        else:
+            # one has simplified, other has not?
+            raise RuntimeError("inconsistent tree conditions: " + str(vif.guard) + " vs " + str(velse.guard))
         
     (lmerge,lsval) = ifthenelse_merge(vif.ift, velse.ift)
     (rmerge,rsval) = ifthenelse_merge(vif.elset, velse.elset)
