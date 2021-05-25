@@ -66,6 +66,18 @@ class Ctx:
 #        if self.contexts[labelnext] is not None: print("next guard ", self.contexts[labelnext]["__guard"])
 #        if self.contexts[labeljump] is not None: print("jump guard ", self.contexts[labeljump]["__guard"])
         self.vals = None
+    
+    def pjif2(self, stack, labelnext, labelcontinue, labelbreak):
+        self.stack(stack[:-1])
+        guard = trytobool(stack[-1])
+        if guard is True or guard is False:
+            [self.contexts[labelnext], self.contexts[labelbreak]] = \
+                apply_to_labels(self.vals, self.contexts.get(labelnext), self.contexts.get(labelbreak), guard)
+        else:
+            [self.contexts[labelnext], self.contexts[labelcontinue]] = \
+                apply_to_labels(self.vals, self.contexts.get(labelnext), self.contexts.get(labelcontinue), guard)
+            
+        self.vals = None    
             
     def pjit(self, stack, labelnext, labeljump):
 #        print_ctx("calling pjif, stack=", stack, "label=", labelnext, "/", labeljump, "guard", stack[-1])

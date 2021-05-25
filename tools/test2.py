@@ -76,14 +76,8 @@ def test(x):
     import oblif.context
     ctx=oblif.context.Ctx()
     ret=1
-    for i in range(min(x,5)):
-#        ret+=i*(ret+1)-i
-#        print("ret", ret)
-        #print(i)
-        k=(1 if x==4 else 2 if x==5 else 3)
-        print(k)
-        if k==1: ret=0
-        #print(i)
+    for i in range(5):
+        print(i)
     return k
     
 #    

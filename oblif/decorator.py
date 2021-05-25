@@ -257,7 +257,7 @@ def _oblif(code):
                      Instr("LOAD_METHOD", "__next__", lineno=instr.lineno), # stack = X|iter|iter|__iter__
                      Instr("CALL_METHOD", 0, lineno=instr.lineno),          # stack = X|iter|(val,cond)
                      Instr("UNPACK_SEQUENCE", 2, lineno=instr.lineno)] +    # stack = X|iter|val|cond
-                     callcontext("pjif", (stack_size_nojump+1,), [bix+1, blocks.get_block_index(instr.arg)], 0, instr.lineno))
+                     callcontext("pjif2", (stack_size_nojump+1,), [bix+1, bix, blocks.get_block_index(instr.arg)], 0, instr.lineno))
                      #callstackargs("pjif", ssizes[ix]+2, , lineno=instr.lineno))
                 # note that iter|val|cond should not be on the stack after the loop, but since
                 # this context will be merged with a context that doesn't have them, they will

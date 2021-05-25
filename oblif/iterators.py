@@ -18,6 +18,7 @@ class ObliviousRange(ObliviousIterator):
         self.maxi = maxi
         self.maxo = maxo
         self.cur = None
+        self.isactive = 1
 
     def __iter__(self):
         return self
@@ -30,11 +31,11 @@ class ObliviousRange(ObliviousIterator):
         
         if self.cur+self.step>=self.maxi: return (False,None)
             
-        docont = 1
+        #docont = 1
         for i in range(self.cur+1, self.cur+self.step+1):
-            docont &= (i!=self.maxo)
+            self.isactive &= (i!=self.maxo)
         self.cur += self.step
-        return (docont, self.cur)
+        return (self.isactive, self.cur)
             
 def orange_(minv, max1, max2, step):
     try:
