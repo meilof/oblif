@@ -26,6 +26,8 @@ class ensemble:
         self.vals = {id(obj): (guard,obj)}
         
     def get(self):
+        if self.vals is None: return self.val
+        
         if len(self.vals)==1:
             for nm in self.vals.values():
                 return nm[1]
@@ -96,8 +98,9 @@ class values:
         return ret
     
 def apply_to_label(vals, orig):
-#    print("appyling", vals, "to", orig)
-    ifguard = vals["__guard"]
+    if orig is None: return vals
+    
+    ifguard = vals["__guard"]    
 
     if orig is None: 
         ret = vals.to_ensembles()
@@ -110,8 +113,21 @@ def apply_to_label(vals, orig):
     ret = values()
     for nm in orig:
         if nm in vals:
+            if (vif:=vals.get(nm)) is (velse:=orig.get(nm)):
+                ret[nm] = vif
+            elif isinstance(velse, ensemble):
+                velse.add(ifguard, vif)
+                ret[nm] = velse
+            else:
+                ret[nm] = ensemble(orig["__guard"], velse)
+                ret.dic[nm].add(ifguard, vif)
+                
+#                if ifguard is True or ifguard is False or isinstance(ifguard,int):
+#                    raise RuntimeError("trivial guard")
+#                ret[nm] = cachedifthenelse(ifguard, vif, velse)
+            
 #            print("orig", nm, orig.dic[nm])
-            orig.dic[nm].add(ifguard, vals.get(nm))
+#            orig.dic[nm].add(ifguard, vals.get(nm))
 #            if (vif:=vals.get(nm)) is (velse:=orig.get(nm)):
 #                ret[nm] = vif
 #            else:
@@ -120,7 +136,7 @@ def apply_to_label(vals, orig):
 #                ret[nm] = cachedifthenelse(ifguard, vif, velse)
 
     #print("returning", ret)
-    return orig  
+    return ret  
 
 def apply_to_labels(vals, orig1, orig2, cond):
     if cond is True:
