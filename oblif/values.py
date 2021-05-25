@@ -39,14 +39,17 @@ class ensemble:
             self.vals[id(obj)] = (guard,obj)
             
     def __call__(self):
-        ret = None
-        for (g,obj) in self.vals.values():
-            if isinstance(obj,ensemble): obj=obj()
-            if ret is None:
-                ret = obj
-            else:
-                ret = g.if_else(obj,ret)
-        return ret
+        if self.vals is not None:
+            self.val = None
+            for (g,obj) in self.vals.values():
+                if isinstance(obj,ensemble): obj=obj()
+                if self.val is None:
+                    self.val = obj
+                else:
+                    self.val = g.if_else(obj,self.val)
+            self.vals = None
+        return self.val
+            
         
 class values:
     def __init__(self):
