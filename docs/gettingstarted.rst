@@ -89,7 +89,16 @@ For efficiency reasons, ``oblif`` does **not** check whether the initial value i
     # i never becomes equal to -1, so branch is fully executed
     ret = i
   # after branch, ret=9
+  
+``lambdas``
+...........
 
+For what it's worth, ``oblif`` works on lambda's as well, for example::
+
+  oblambda = oblif(lambda x: 1 if x==3 else 0)
+  xisthree = oblambda(x)
+
+.. _cannot-do:
 
 Things you cannot do
 --------------------
@@ -152,6 +161,30 @@ To still be able to perform operations on a mutable object, it needs to be copie
   # lst[1] is 0 or 4 depending on a
 
 (There is some experimental work to automatically copy mutable objects before they are executed in branches. This may be implemented in a future version of oblif.)
+
+Obliviously modify global variables
+...................................
+
+Oblif only monitors access to local variables, not to globals. Because, as mentioned above, oblif also executes non-taken branches, this means that modifications to global variables in non-taken branches will be executed regardless of their guard, for example::
+
+  @oblif def setb(a): # a is a data-oblivious variable
+    global b
+    if a==1:
+      b = 3      # will be executed regardless of whether a==1
+    else:
+      b = 4      # will be executed regardless of whether a==1
+    # end result is that b is a non-oblivious variable equal to 4
+  
+Of course, it is possible to set the value of a global variable to an obliviously computed value. The global variable will then become a data-oblivious value equal to the computed value, for example::
+
+  @oblif def setb(a): # a is a data-oblivious variable
+    global b
+    if a==1:
+      bval = 3      # will be obliviously set to 3 if a==1
+    else:
+      bval = 4      # will be obliviously set to 4 if a!=1
+    # bval is a data-oblivious variable equal to 3 or 4
+    b = bval        # set b to this data-oblivious variable
 
 Access variables that may be undefined
 ......................................

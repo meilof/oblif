@@ -21,8 +21,11 @@ class TestOblif(unittest.TestCase):
         OblivVal.if_else = call_counter(OblivVal.if_else)
     
     def dotest(self, fn, *args):
-        self.assertEqual(fn(*args),
-                         _val(oblif(fn)(*(map(OblivVal, args)))))
+        o1 = fn(*args)
+        o2 = _val(oblif(fn)(*(map(OblivVal, args))))
+        o3 = _val(oblif(fn)(*args))
+        self.assertEqual(o1, o2)
+        self.assertEqual(o1, o3)
         
     def test_fn_return_none(self):
         def fn_return_none():

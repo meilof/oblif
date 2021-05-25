@@ -1,11 +1,5 @@
-* Can we try to avoid ifthenelse for guard and 1-guard?
-  guard = ifthenelse(cond,__guard,0)
-  guari = ifthenelse(cond,0,__guard)
-  what will be called is guari.if_then_else(guari,guard)=ifthenelse(ifthenelse(cond,0,__guard),ifthenelse(cond,0,__guard),ifthenelse(cond,__guard,0)) => simplify this?
-* Paar voorbeelden kijken of het aantal if_then_elses ongeveer klopt? Test case voor maken? Monkey-patchen?  https://stackoverflow.com/questions/22356914/using-python-mock-to-count-number-of-method-calls https://www.google.com/search?q=python+unittest+count+number+of+invocations&rlz=1C1GCEU_nlNL821NL821&oq=python+unittest+count+number+of+invocations&aqs=chrome..69i57.8112j1j7&sourceid=chrome&ie=UTF-8
 * Add all examples from the docs to test cases
-* Ranges voorwaarde hoeft niet cumulatief!
-* Ranges: tuple doen voor patchen? Oblivious stride?
+* Switch to xor for guard negation (and document!)
 
 Longer-term
 * code coverage van tests bekijken
@@ -23,22 +17,5 @@ Longer-term
   (modulo een paar optimalisaties)? kunnen we daar toch een impliciete
   deepcopy op doen?
 * Ook met spdz proberen?
+* Ranges: oblivious stride implementeren?
 * Native variant met decorators? Toch over nadenken?
-
-
-Document
-
-Assumptions for programmer:
-* No oblivious computations on immutables, globals
-* For does not test oblivious initial conditions
-* Encourage to submit functions where not the same
-* Works on lambdas...
-
-Assumptions for backends:
-* Guard needs to be "binary" (|, &, 1-)
-* Guard needs to support if_else
-* Immutability, if_then_else idempotence: no longer needed?
-* Note if_else acts on tuples
-* a and a, a or a: return self, is that required or just more efficient?
-
-

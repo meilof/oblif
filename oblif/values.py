@@ -28,8 +28,7 @@ class ensemble:
                 self.val = g.if_else(obj,self.val)
             self.vals = None
         return self.val
-            
-        
+                  
 class values:
     def __init__(self):
         self.dic = {}

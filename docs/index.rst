@@ -16,6 +16,7 @@ Welcome to oblif's documentation!
    installing
    frameworks
    performance
+   help
 
 
 
