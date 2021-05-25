@@ -6,7 +6,6 @@
 * Add all examples from the docs to test cases
 * Ranges voorwaarde hoeft niet cumulatief!
 * Ranges: tuple doen voor patchen? Oblivious stride?
-* Use ensemble at label level?
 
 Longer-term
 * code coverage van tests bekijken
