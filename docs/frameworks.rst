@@ -50,7 +50,7 @@ PySNARK is a framework, inspired by MPyC, for programming verifiable computation
 MP-SPDZ
 -------
 
-`MP-SPDZ <https://github.com/data61/MP-SPDZ>`_ implements a suite of multi-party computation protocols by compiling programs written in Python into an internal representation. It is possible to use `oblif` with MP-SPDZ by monkey-patching its data types to support binary operations on bits, for example::
+`MP-SPDZ <https://github.com/data61/MP-SPDZ>`_ implements a suite of multi-party computation protocols by compiling programs written in Python into an internal representation. It is possible to use `oblif` with MP-SPDZ by monkey-patching its data types to support binary operators on bits, for example::
 
     from oblif.decorator import oblif
 
