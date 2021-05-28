@@ -47,6 +47,42 @@ PySNARK is a framework, inspired by MPyC, for programming verifiable computation
 
     print("test(2) is", test(PubVal(6)))
     
+MP-SPDZ
+-------
+
+`MP-SPDZ <https://github.com/data61/MP-SPDZ>`_ implements a suite of multi-party computation protocols by compiling programs written in Python into an internal representation. It is possible to use `oblif` with MP-SPDZ by monkey-patching its data types to support binary operations on bits, for example::
+
+    from oblif.decorator import oblif
+
+    sint.__and__ = sint.bit_and
+    sint.__rand__ = sint.bit_and
+    sint.__or__ = sint.bit_or
+    sint.__ror__ = sint.bit_or
+    sint.__deepcopy__ = lambda self, memo: return self
+
+    def test(actual, expected):
+        actual = actual.reveal()
+        print_ln('expected %s, got %s', expected, actual)
+
+    a = sint(1)
+    b = sint(2)
+
+    @oblif 
+    def test_is_two(x):
+        return 1 if x==2 else 0
+
+    test(test_is_two(b), 1)
+    test(test_is_two(a), 0)
+
+    @oblif
+    def test_for(x):
+        ret = 1
+        for i in range(min(x, 10)):
+            ret = i
+        return ret
+
+    test(test_for(sint(5)), 4)
+
 PyZ8Z
 -----
 
