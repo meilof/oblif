@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='oblif',
-      version='0.2.1',
+      version='0.3.0',
       description='Bytecode transformations to produce data-oblivious code',
       long_description = open("README.md").read(),
       long_description_content_type='text/markdown',

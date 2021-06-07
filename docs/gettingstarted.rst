@@ -75,17 +75,24 @@ In this case, the loop will be executed one hundred times, but changes occuring 
 ``for`` loops
 .............
 
-It is currently only possible to use data-oblivious ``for`` loops of the format ``for i in range(..., min(x, MAX), ...)`` with a positive stride, where ``x`` is a data-oblivious value and ``MAX`` is a non-oblivious maximum. The invocation of ``min`` needs to be in the call to ``range`` for ``oblif`` to detect it. For example::
+It is possible to use for loops over ranges ``range(x)`` where ``x`` is an oblivious variable. Only positive integer strides are supported. 
 
-  for i in range(max(x,10)):   # x is a data-oblivious value
+Since ``oblif`` cannot know when the bound is reached, it is necessary to provide an upper bound. There are two approaches. One is to include a ``break`` statement in the loop, e.g.::
+
+  for i in range(x):   # x is a data-oblivious value
+    if x==5: break     # make sure loop executed at most 5 times: can be here ...
     ret = i
-    if x==5: break
+    if i==5: break     # ... or here (this is slightly more efficient)
+	
+An alternative is to use ``orange`` from ``oblif.iterators``, which enables to provide the oblivious maximum and the non-oblivious upper bound as a tuple::
 
+  for i in orange((x,10)):   # x is a data-oblivious value; loop is run at most 5 times
+    ret = i
 
 For efficiency reasons, ``oblif`` does **not** check whether the initial value is smaller than the oblivious maximum (that would require an oblivious sign computation, which may be more efficient than an oblivious equality check), for example::
 
   x=PrivVal(-1)
-  for i in range(max(x,10)):
+  for i in orange((x,10)):
     # i never becomes equal to -1, so branch is fully executed
     ret = i
   # after branch, ret=9

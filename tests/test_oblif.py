@@ -66,7 +66,7 @@ class TestOblif(unittest.TestCase):
     def test_fn_for(self):
         def fn_for(x):
             ctr = 0
-            for i in range(min(x,10)):
+            for i in orange((x,10)):
                 ctr += 1
             return ctr
         self.dotest(fn_for, 1)
@@ -79,7 +79,7 @@ class TestOblif(unittest.TestCase):
     def test_fn_for_ternary(self):
         def fn_for_ternary(x):
             ret=1
-            for i in range(min(x,5)):
+            for i in orange((x,5)):
                 k=(1 if x==4 else 2 if x==5 else 3)
                 if k==1: ret=0
             return k
@@ -113,7 +113,7 @@ class TestOblif(unittest.TestCase):
     def test_fn_for2(self):
         def fn_for2(x):
             ret=1
-            for i in range(1, min(x+1,10)):
+            for i in orange(1, (x+1,10)):
                 ret = ret*i
             return ret
         self.dotest(fn_for2, 1)
@@ -137,9 +137,9 @@ class TestOblif(unittest.TestCase):
         
     def test_recursive_for(self):
         def fn(x):
-            for i in range(min(x,10)):
+            for i in orange((x,10)):
                 ret=i
-                for j in range(min(i,10)):
+                for j in orange((i,10)):
                     ret=j
             return ret
         self.dotest(fn, 1)
@@ -148,12 +148,42 @@ class TestOblif(unittest.TestCase):
         self.dotest(fn, 9)
         self.dotest(fn, 10)
         self.dotest(fn, 111)
+		
+    def test_regular_for1(self):
+        def fn(x):
+            for i in range(x):
+                ret=i
+                for j in orange((i,10)):
+                    ret=j
+                if i==10: break
+            return ret
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)
+		
+    def test_recursive_for2(self):
+        def fn(x):
+            for i in range(x):
+                if i==10: break
+                ret=i
+                for j in orange((i,10)):
+                    ret=j
+            return ret
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)		
             
     def test_recursive_for_orange(self):
         def fn(x):
-            for i in orange(x,10):
+            for i in orange((x,10)):
                 ret=i
-                for j in orange(i,10):
+                for j in orange((i,10)):
                     ret=j
             return ret
         self.dotest(fn, 1)
@@ -166,10 +196,10 @@ class TestOblif(unittest.TestCase):
     def test_break_in_for(self):
         def fn(x):
             ret=0
-            for i in range(min(x,10)):
+            for i in orange((x,10)):
                 if i==x-1: break
                 ret=i
-                for j in range(min(i,10)):
+                for j in orange((i,10)):
                     ret=j
             return ret
         self.dotest(fn, 1)
@@ -181,8 +211,22 @@ class TestOblif(unittest.TestCase):
         
     def test_for_no_ops(self):
         def fn(x):
-            for i in range(min(x,10)):
+            for i in orange((x,10)):
                 if i==x-1: break
+        self.dotest(fn, 1)
+        self.dotest(fn, 2)
+        self.dotest(fn, 8)
+        self.dotest(fn, 9)
+        self.dotest(fn, 10)
+        self.dotest(fn, 111)
+		
+    def test_for_step_size(self):
+        def fn(x):
+            ret=1
+            for i in orange(0,(x,10),3):
+                ret=i
+                if i==x-1: break
+            return ret
         self.dotest(fn, 1)
         self.dotest(fn, 2)
         self.dotest(fn, 8)

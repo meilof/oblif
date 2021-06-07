@@ -98,7 +98,16 @@ class Ctx:
         self.vals = None
         
     def range(self, *args):
-        return orange(*args)
+        def _range(*args):
+            if len(args)==1:
+                return orange((args[0],None))
+            elif len(args)==2:
+                return orange(args[0],(args[1],None))
+            elif len(args)==3:
+                return orange(args[0],(args[1],None),args[2])
+            else:
+                return range(*args)
+        return _range
     
     def getiter(self, it):
         return iter(it) if isinstance(it, ObliviousIterator) else IteratorWrapper(iter(it))

@@ -80,55 +80,6 @@ def callcontext(fn, stack, args, rets, lineno):
         
     return ret
 
-def get_function_args(instrs, ix):
-    ix+=1
-    args = {}
-    depth = 0
-    
-    while not (instrs[ix].name=="CALL_FUNCTION" and instrs[ix].arg==depth):
-        if instrs[ix].has_jump(): raise RuntimeError("unexpected jump")
-#        print(ix, instrs[ix], depth)
-        depth += instrs[ix].stack_effect()
-        args[depth] = ix
-        ix += 1
-        
-#    print("args", args)
-    return [args[d+1] for d in range(depth)]
-
-
-def patch_range(instrs, ix):
-#    print("patch range", ix, get_function_args(instrs, ix))
-    
-    args = get_function_args(instrs, ix)
-    
-#    print("found", args)
-    
-#    for i in range(ix, args[len(args)-1]+3):
-#        print(i, instrs[i])
-    
-    if len(args)==1:
-        # one function argument
-        if instrs[ix+1].name=="LOAD_GLOBAL" and instrs[ix+1].arg=="min":
-#            print("found")
-            instrs[ix] = Instr("LOAD_FAST", "ctx")
-            instrs[ix+1] = Instr("LOAD_METHOD", "range")
-            instrs[args[0]] = Instr("NOP")
-            instrs[args[0]+1] = Instr("CALL_METHOD", 2)
-    elif len(args)==2 or len(args)==3:
-        arg1s = args[0]+1
-        arg2s = args[1]
-        if instrs[arg1s].name=="LOAD_GLOBAL" and instrs[arg1s].arg=="min":
-            for i in range(arg1s, ix, -1): instrs[i] = instrs[i-1]
-            instrs[ix] = Instr("LOAD_FAST", "ctx")
-            instrs[ix+1] = Instr("LOAD_METHOD", "range")
-            instrs[arg2s] = Instr("NOP")
-            instrs[args[len(args)-1]+1] = Instr("CALL_METHOD", len(args)+1)
-            #instrs[arg1s+1] = 
-            #instrs[arg2s-1]
-    
-#    print("after")
-#    for i in range(ix, args[len(args)-1]+3):
-#        print(i, instrs[i])
 
 """ Turn given code into data-oblivious code """
 def _oblif(code): 
@@ -247,8 +198,13 @@ def _oblif(code):
             elif (instr.name=="LOAD_FAST" and instr.arg[-1]!="_") or (instr.name=="LOAD_GLOBAL" and instr.arg=="__guard"):
                 add_to_code(newcode,callcontext("get", 0, [instr.arg], 1, instr.lineno))
             elif instr.name=="LOAD_GLOBAL" and instr.arg=="range":
-                patch_range(block,iix)
-                add_to_code(newcode,[block[iix]])
+                add_to_code(newcode,callcontext("range", 0, [], 1, instr.lineno))
+#                add_to_code(newcode, [
+#                        Instr("LOAD_FAST", "ctx", instr.lineno),
+#                        Instr("LOAD_METHOD", "range", instr.lineno)
+#                ])
+                #patch_range(block,iix)
+                #add_to_code(newcode,[block[iix]])
             elif instr.name=="GET_ITER":
                 add_to_code(newcode,callcontext("getiter", 1, [], 1, instr.lineno))
             elif instr.name=="FOR_ITER":                                    # stack = X|iter

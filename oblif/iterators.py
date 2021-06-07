@@ -24,11 +24,11 @@ class ObliviousRange(ObliviousIterator):
 
     def __next__(self):
         if self.cur is None:
-            if (self.start>=self.maxi): return (False,None)
+            if (self.maxi is not None and self.start>=self.maxi): return (False,None)
             self.cur = self.start
             return (True,self.cur)
         
-        if self.cur+self.step>=self.maxi: return (False,None)
+        if self.maxi is not None and self.cur+self.step>=self.maxi: return (False,None)
             
         docont = 1
         for i in range(self.cur+1, self.cur+self.step+1):
@@ -38,7 +38,7 @@ class ObliviousRange(ObliviousIterator):
             
 def orange_(minv, max1, max2, step):
     try:
-        maxi = int(max1)
+        maxi = None if max1 is None else int(max1)
         try:
             maxo = int(max2)
             return range(minv, min(max1,max2), step)
@@ -46,20 +46,20 @@ def orange_(minv, max1, max2, step):
             maxo = max2
     except:
         try:
-            maxi = int(max2)
+            maxi = max2 if max2 is None else int(max2)
             maxo = max1
         except:
-            raise RuntimeError("at least one of the loop bounds must support int()")
+            raise RuntimeError("at least one of the loop bounds must be None or support int()")
     
     return ObliviousRange(minv, maxi, maxo, step)
         
 def orange(*args):
-    if len(args)==2:
-        return orange_(0, args[0], args[1], 1)
+    if len(args)==1:
+        return orange_(0, args[0][0], args[0][1], 1)
+    elif len(args)==2:
+        return orange_(args[0], args[1][0], args[1][1], 1)
     elif len(args)==3:
-        return orange_(args[0], args[1], args[2], 1)
-    elif len(args)==4:
-        return orange_(args[0], args[1], args[2], 3)
+        return orange_(args[0], args[1][0], args[1][1], args[2])
     else:
         raise RuntimeError("wrong number of arguments to range()")
     
