@@ -1,0 +1,21 @@
+from oblif.decorator import oblif
+from oblif.iterators import orange
+
+sint.__and__ = sint.bit_and
+sint.__rand__ = sint.bit_and
+sint.__or__ = sint.bit_or
+sint.__ror__ = sint.bit_or
+sint.__deepcopy__ = lambda self, memo: self
+
+@oblif
+def test(x):
+  if x<3:
+    ret = 0
+  elif 3<=x<5:
+    ret = 1
+  else:
+    ret = 2
+  return ret
+  
+for i in range(8): print_ln("test(%s) is %s", i, test(sint(i)).reveal())
+

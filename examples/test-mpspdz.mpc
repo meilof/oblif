@@ -1,0 +1,32 @@
+from oblif.decorator import oblif
+from oblif.iterators import orange
+
+
+sint.__and__ = sint.bit_and
+sint.__rand__ = sint.bit_and
+sint.__or__ = sint.bit_or
+sint.__ror__ = sint.bit_or
+sint.__deepcopy__ = lambda self, memo: self
+
+def test(actual, expected):
+    actual = actual.reveal()
+    print_ln('expected %s, got %s', expected, actual)
+
+a = sint(1)
+b = sint(2)
+
+@oblif
+def test_is_two(x):
+    return 1 if x==2 else 0
+
+test(test_is_two(b), 1)
+test(test_is_two(a), 0)
+
+@oblif
+def test_for(x):
+    ret = 1
+    for i in orange((x, 10)):
+        ret = i
+    return ret
+
+test(test_for(sint(5)), 4)

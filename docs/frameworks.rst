@@ -10,11 +10,12 @@ Oblif works out of the box with the master branch of MPyC available at `GitHub <
 
     from mpyc.runtime import mpc
     from oblif.decorator import oblif
+    from oblif.iterators import orange
 
     @oblif
     def fac(x):
         ret=1
-        for i in range(2,min(x+1, 10)):
+        for i in orange(2,(x+1, 10)):
             ret *= i
         return ret
 
@@ -53,6 +54,7 @@ MP-SPDZ
 `MP-SPDZ <https://github.com/data61/MP-SPDZ>`_ implements a suite of multi-party computation protocols by compiling programs written in Python into an internal representation. It is possible to use `oblif` with MP-SPDZ by monkey-patching its data types to support binary operators on bits, for example::
 
     from oblif.decorator import oblif
+    from oblif.iterators import orange
 
     sint.__and__ = sint.bit_and
     sint.__rand__ = sint.bit_and
@@ -77,7 +79,7 @@ MP-SPDZ
     @oblif
     def test_for(x):
         ret = 1
-        for i in range(min(x, 10)):
+        for i in orange((x, 10)):
             ret = i
         return ret
 

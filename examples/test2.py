@@ -8,7 +8,7 @@ from oblif.iterators import orange
 @oblif
 def test(x):
     ctr = 0
-    for i in range(min(x,5)):
+    for i in orange((x,5)):
         ctr += 1
     return ctr
 

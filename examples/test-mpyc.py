@@ -1,10 +1,11 @@
 from mpyc.runtime import mpc
 from oblif.decorator import oblif
+from oblif.iterators import orange
 
 @oblif
 def fac(x):
     ret=1
-    for i in range(2,min(x+1, 10)):
+    for i in orange(2,(x+1, 10)):
         ret *= i
     return ret
 
