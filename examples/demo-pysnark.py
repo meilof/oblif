@@ -1,5 +1,5 @@
-from oblif.decorator import oblif
 from pysnark.runtime import PubVal
+from oblif.decorator import oblif
 
 @oblif
 def test(x):
@@ -11,4 +11,4 @@ def test(x):
     ret = 2
   return ret
 
-for i in range(8): print("test("+str(i)+") is", test(PubVal(i)))
+for i in range(8): print("test("+str(i)+") is", test(PubVal(i)).val())

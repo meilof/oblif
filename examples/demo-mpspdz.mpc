@@ -1,5 +1,4 @@
 from oblif.decorator import oblif
-from oblif.iterators import orange
 from oblif.compat import patch_mpspdz_type
 patch_mpspdz_type(sint)
 
