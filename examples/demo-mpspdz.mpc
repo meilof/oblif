@@ -1,11 +1,7 @@
 from oblif.decorator import oblif
 from oblif.iterators import orange
-
-sint.__and__ = sint.bit_and
-sint.__rand__ = sint.bit_and
-sint.__or__ = sint.bit_or
-sint.__ror__ = sint.bit_or
-sint.__deepcopy__ = lambda self, memo: self
+from oblif.compat import patch_mpspdz_type
+patch_mpspdz_type(sint)
 
 @oblif
 def test(x):
